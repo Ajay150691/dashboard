@@ -1,598 +1,529 @@
 <!DOCTYPE html>
-<!-- saved from url=(0071)file:///Users/ajaynegi/Downloads/Eros_Weekly_Dashboard_Prototype_1.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eros Universe — Weekly Management Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-  *{margin:0;padding:0;box-sizing:border-box}
-  :root{
-    --bg:#F4F6FA; --white:#FFFFFF; --dark:#0D1117; --card:#FFFFFF;
-    --blue:#1A56A0; --bluelt:#EBF5FB; --red:#C0392B; --redlt:#FDEDEC;
-    --green:#0A7C59; --grnlt:#E9F7EF; --orange:#CA6F1E; --orglt:#FEF9E7;
-    --muted:#6B7280; --border:#E2E6EE; --dark2:#1A1A2E;
-  }
-  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
-
-  /* ── NAV ── */
-  .nav{background:var(--dark2);padding:0 24px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
-  .nav-brand{padding:16px 24px 16px 0;border-right:1px solid #2A2A3E;margin-right:8px}
-  .nav-brand h1{font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.3px}
-  .nav-brand p{font-size:9px;color:#6B7280;margin-top:1px;letter-spacing:.5px;text-transform:uppercase}
-  .nav-tabs{display:flex;gap:2px;padding:0 8px}
-  .nav-tab{padding:18px 18px;font-size:12px;font-weight:500;color:#8888AA;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;white-space:nowrap}
-  .nav-tab:hover{color:#fff}
-  .nav-tab.active{color:#fff;border-bottom-color:var(--blue)}
-  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-  .date-badge{background:#1A1A2E;border:1px solid #2A2A3E;color:#AAAACC;font-size:11px;padding:6px 14px;border-radius:6px}
-  .refresh-badge{background:#0A7C5920;border:1px solid #0A7C59;color:#0A7C59;font-size:10px;padding:5px 10px;border-radius:5px;font-weight:600}
-
-  /* ── PAGES ── */
-  .page{display:none;padding:24px;max-width:1400px;margin:0 auto}
-  .page.active{display:block}
-
-  /* ── SCORECARD ROW ── */
-  .scorecard-row{display:grid;gap:14px;margin-bottom:20px}
-  .grid-4{grid-template-columns:repeat(4,1fr)}
-  .grid-3{grid-template-columns:repeat(3,1fr)}
-  .grid-6{grid-template-columns:repeat(6,1fr)}
-
-  .scorecard{background:var(--white);border-radius:10px;padding:18px 20px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);position:relative;overflow:hidden}
-  .scorecard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-  .scorecard.blue::before{background:var(--blue)}
-  .scorecard.red::before{background:var(--red)}
-  .scorecard.green::before{background:var(--green)}
-  .scorecard.orange::before{background:var(--orange)}
-  .sc-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-  .sc-value{font-size:32px;font-weight:800;color:var(--dark);line-height:1;margin-bottom:6px;letter-spacing:-1px}
-  .sc-change{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px}
-  .sc-change.up{background:#E9F7EF;color:var(--green)}
-  .sc-change.down{background:#FDEDEC;color:var(--red)}
-  .sc-change.neutral{background:#F4F6FA;color:var(--muted)}
-  .sc-sub{font-size:10px;color:var(--muted);margin-top:4px}
-
-  /* ── CHARTS ── */
-  .chart-row{display:grid;gap:14px;margin-bottom:20px}
-  .grid-21{grid-template-columns:2fr 1fr}
-  .grid-12{grid-template-columns:1fr 2fr}
-  .grid-11{grid-template-columns:1fr 1fr}
-  .grid-111{grid-template-columns:1fr 1fr 1fr}
-
-  .chart-card{background:var(--white);border-radius:10px;padding:20px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
-  .chart-title{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px}
-  .chart-sub{font-size:10px;color:var(--muted);margin-bottom:16px}
-
-  /* ── BAR CHART ── */
-  .bar-chart{display:flex;flex-direction:column;gap:8px}
-  .bar-row{display:flex;align-items:center;gap:10px}
-  .bar-label{font-size:10px;color:var(--muted);width:140px;flex-shrink:0;text-align:right}
-  .bar-track{flex:1;background:#F4F6FA;border-radius:3px;height:22px;overflow:hidden;position:relative}
-  .bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;min-width:24px}
-  .bar-val{font-size:11px;font-weight:700;width:50px;flex-shrink:0;text-align:right}
-
-  /* ── LINE CHART SVG ── */
-  .line-chart-wrap{width:100%;overflow:hidden}
-  .line-chart-wrap svg{width:100%;height:140px}
-
-  /* ── DONUT ── */
-  .donut-wrap{display:flex;align-items:center;gap:20px}
-  .donut-legend{display:flex;flex-direction:column;gap:8px}
-  .legend-item{display:flex;align-items:center;gap:8px;font-size:11px}
-  .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-
-  /* ── TABLE ── */
-  .data-table{width:100%;border-collapse:collapse;font-size:11px}
-  .data-table th{background:var(--dark2);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
-  .data-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--dark)}
-  .data-table tr:nth-child(even) td{background:#FAFBFD}
-  .data-table tr:hover td{background:var(--bluelt)}
-  .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
-  .pill.red{background:var(--redlt);color:var(--red)}
-  .pill.green{background:var(--grnlt);color:var(--green)}
-  .pill.orange{background:var(--orglt);color:var(--orange)}
-  .pill.blue{background:var(--bluelt);color:var(--blue)}
-
-  /* ── ALERT CARDS ── */
-  .alert-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
-  .alert-card{border-radius:10px;padding:18px 20px;border:1px solid;display:flex;align-items:flex-start;gap:14px}
-  .alert-card.red{background:var(--redlt);border-color:#F5B7B1}
-  .alert-card.green{background:var(--grnlt);border-color:#A9DFBF}
-  .alert-card.orange{background:var(--orglt);border-color:#FAD7A0}
-  .alert-icon{font-size:22px;line-height:1;flex-shrink:0}
-  .alert-title{font-size:12px;font-weight:700;margin-bottom:4px}
-  .alert-card.red .alert-title{color:var(--red)}
-  .alert-card.green .alert-title{color:var(--green)}
-  .alert-card.orange .alert-title{color:var(--orange)}
-  .alert-body{font-size:11px;color:#444;line-height:1.5}
-  .alert-metric{font-size:22px;font-weight:800;margin-left:auto;flex-shrink:0}
-  .alert-card.red .alert-metric{color:var(--red)}
-  .alert-card.green .alert-metric{color:var(--green)}
-  .alert-card.orange .alert-metric{color:var(--orange)}
-
-  /* ── FUNNEL ── */
-  .funnel-visual{display:flex;flex-direction:column;gap:6px}
-  .funnel-step{display:flex;align-items:center;gap:10px}
-  .funnel-name{font-size:10px;color:var(--muted);width:170px;flex-shrink:0;text-align:right}
-  .funnel-bar-outer{flex:1;background:#F4F6FA;border-radius:3px;height:26px;position:relative}
-  .funnel-bar-inner{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:10px;font-size:10px;font-weight:700;color:#fff}
-  .funnel-count{font-size:11px;font-weight:700;width:55px;flex-shrink:0;text-align:right}
-  .funnel-drop{font-size:9px;width:50px;flex-shrink:0;text-align:left;padding-left:6px}
-
-  /* ── SECTION LABEL ── */
-  .section-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
-  .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-
-  /* ── NOTE BOX ── */
-  .note-box{background:var(--bluelt);border-left:4px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:11px;color:var(--dark);line-height:1.6;margin-bottom:16px}
-
-  @media(max-width:768px){
-    .grid-4,.grid-6{grid-template-columns:repeat(2,1fr)}
-    .grid-21,.grid-12,.grid-11,.grid-111{grid-template-columns:1fr}
-    .nav-tabs{overflow-x:auto}
-    .nav-tab{font-size:11px;padding:16px 12px}
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F0F2F7;--white:#FFFFFF;--dark:#0A0E1A;
+  --blue:#1847A8;--bluelt:#E8EFFE;
+  --red:#D42B3A;--redlt:#FDEDEF;
+  --green:#0B7A5C;--grnlt:#E6F7F2;
+  --orange:#C46A0F;--orglt:#FEF5E8;
+  --muted:#8892A4;--border:#E4E8F0;
+  --font:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:100vh}
+.nav{background:#0A0E1A;padding:0 28px;display:flex;align-items:center;position:sticky;top:0;z-index:100;height:56px;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.nav-brand{display:flex;align-items:center;gap:10px;padding-right:20px;border-right:1px solid rgba(255,255,255,.1)}
+.logo{width:28px;height:28px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:12px;font-weight:800;color:#fff}
+.brand h1{font-family:var(--display);font-size:13px;font-weight:700;color:#fff}
+.brand p{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px}
+.tabs{display:flex;padding:0 12px;flex:1}
+.tab{padding:0 16px;height:56px;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;transition:.2s;white-space:nowrap}
+.tab:hover{color:rgba(255,255,255,.8)}
+.tab.active{color:#fff;border-bottom-color:var(--blue)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.date-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:11px;padding:5px 12px;border-radius:6px}
+.live-badge{background:rgba(11,122,92,.2);border:1px solid rgba(11,122,92,.4);color:#4ECBA8;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ECBA8;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.page{display:none;padding:24px 28px;max-width:1440px;margin:0 auto}
+.page.active{display:block}
+.status{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:9px 16px;margin-bottom:18px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.ok{color:var(--green);font-weight:600}
+.section-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.sc-row{display:grid;gap:10px;margin-bottom:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g6{grid-template-columns:repeat(6,1fr)}
+.sc{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.b::before{background:var(--blue)}.sc.r::before{background:var(--red)}.sc.g::before{background:var(--green)}.sc.o::before{background:var(--orange)}
+.sc-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.sc-val{font-family:var(--display);font-size:28px;font-weight:700;line-height:1;margin-bottom:5px;letter-spacing:-1px}
+.sc-val.r{color:var(--red)}.sc-val.g{color:var(--green)}.sc-val.o{color:var(--orange)}.sc-val.b{color:var(--blue)}
+.chg{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+.chg.up{background:var(--grnlt);color:var(--green)}.chg.dn{background:var(--redlt);color:var(--red)}.chg.fl{background:#F0F2F7;color:var(--muted)}
+.sc-sub{font-size:9px;color:var(--muted);margin-top:4px}
+.chart-row{display:grid;gap:10px;margin-bottom:16px}
+.g21{grid-template-columns:2fr 1fr}.g11{grid-template-columns:1fr 1fr}.g111{grid-template-columns:1fr 1fr 1fr}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.card-title{font-family:var(--display);font-size:12px;font-weight:700;margin-bottom:3px}
+.card-sub{font-size:9px;color:var(--muted);margin-bottom:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:10px}
+.tbl th{background:#0A0E1A;color:#fff;padding:7px 10px;text-align:center;font-weight:600;font-size:9px;letter-spacing:.5px;text-transform:uppercase}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:center}
+.tbl td:first-child{text-align:left;font-weight:600}
+.tbl tr:nth-child(even) td{background:#FAFBFD}
+.up-c{color:var(--green);font-weight:700;background:var(--grnlt)!important}
+.dn-c{color:var(--red);font-weight:700;background:var(--redlt)!important}
+.or-c{color:var(--orange);font-weight:700;background:var(--orglt)!important}
+.bs-c{color:var(--muted);font-style:italic}
+.bar-wrap{display:flex;flex-direction:column;gap:7px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-lbl{font-size:9px;color:var(--muted);width:90px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;background:#F0F2F7;border-radius:3px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:700;color:#fff;min-width:16px}
+.bar-val{font-size:10px;font-weight:700;width:45px;flex-shrink:0;text-align:right}
+.alert-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.alert{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;gap:10px;align-items:flex-start}
+.alert.r{background:var(--redlt);border-color:#F5B7BB}
+.alert.g{background:var(--grnlt);border-color:#A8DECE}
+.alert.o{background:var(--orglt);border-color:#F5CFA0}
+.alert-ico{font-size:18px;flex-shrink:0;margin-top:2px}
+.alert-ttl{font-size:11px;font-weight:700;margin-bottom:3px}
+.alert.r .alert-ttl{color:var(--red)}.alert.g .alert-ttl{color:var(--green)}.alert.o .alert-ttl{color:var(--orange)}
+.alert-body{font-size:10px;color:#444;line-height:1.5}
+.alert-metric{font-family:var(--display);font-size:22px;font-weight:700;margin-left:auto;flex-shrink:0}
+.alert.r .alert-metric{color:var(--red)}.alert.g .alert-metric{color:var(--green)}.alert.o .alert-metric{color:var(--orange)}
+.funnel{display:flex;flex-direction:column;gap:5px}
+.f-step{display:flex;align-items:center;gap:8px}
+.f-name{font-size:9px;color:var(--muted);width:155px;flex-shrink:0;text-align:right}
+.f-outer{flex:1;background:#F0F2F7;border-radius:3px;height:22px}
+.f-inner{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:7px;font-size:9px;font-weight:700;color:#fff;min-width:16px}
+.f-count{font-size:10px;font-weight:700;width:50px;flex-shrink:0;text-align:right}
+.f-drop{font-size:9px;width:50px;flex-shrink:0;padding-left:4px;color:var(--red)}
+.prog-item{margin-bottom:10px}
+.prog-hdr{display:flex;justify-content:space-between;margin-bottom:3px}
+.prog-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.prog-val{font-size:10px;font-weight:700}
+.prog-track{background:#F0F2F7;border-radius:3px;height:7px}
+.prog-fill{height:7px;border-radius:3px;transition:width 1s ease}
+.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700}
+@media(max-width:768px){.g4,.g6{grid-template-columns:repeat(2,1fr)}.g21,.g11,.g111{grid-template-columns:1fr}.alert-grid{grid-template-columns:1fr}.tabs{overflow-x:auto}.page{padding:14px}}
 </style>
 </head>
 <body>
-
-<!-- NAV -->
 <nav class="nav">
   <div class="nav-brand">
-    <h1>Eros Universe</h1>
-    <p>Weekly Dashboard</p>
+    <div class="logo">EU</div>
+    <div class="brand"><h1>Eros Universe</h1><p>Weekly Dashboard</p></div>
   </div>
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="showPage(&#39;health&#39;)">📊 Health Score</div>
-    <div class="nav-tab" onclick="showPage(&#39;bugs&#39;)">🔴 Bug Tracker</div>
-    <div class="nav-tab" onclick="showPage(&#39;funnel&#39;)">🔽 Funnel Health</div>
-    <div class="nav-tab" onclick="showPage(&#39;alerts&#39;)">⚡ Weekly Alerts</div>
+  <div class="tabs">
+    <div class="tab active" onclick="show('health',this)">📊 Health Score</div>
+    <div class="tab" onclick="show('overview',this)">📅 Weekly Overview</div>
+    <div class="tab" onclick="show('bugs',this)">🔴 Bug Tracker</div>
+    <div class="tab" onclick="show('funnel',this)">🔽 Funnel Health</div>
+    <div class="tab" onclick="show('alerts',this)">⚡ Alerts</div>
   </div>
   <div class="nav-right">
-    <div class="date-badge">📅 Apr 17 – Apr 23, 2026</div>
-    <div class="refresh-badge">● Live — refreshes every 4h</div>
+    <div class="date-badge" id="nav-date">—</div>
+    <div class="live-badge"><div class="dot"></div>Auto Mon 8AM</div>
   </div>
 </nav>
 
 <!-- PAGE 1: HEALTH SCORE -->
 <div class="page active" id="page-health">
-  <div class="note-box">
-    <strong>Monday Morning View</strong> — This page shows last 7 days vs the previous 7 days. 
-    Green arrows = improving. Red arrows = declining. All numbers auto-update every 4 hours from GA4.
+  <div class="status"><span class="ok" id="status-msg">✅ Data loaded from Google Sheets · W1 Mar 23 – W7 May 4+</span><span id="updated-at">—</span></div>
+  <div class="section-label">Latest Week vs Previous Week</div>
+  <div class="sc-row g4">
+    <div class="sc b"><div class="sc-lbl">Total Users</div><div class="sc-val b" id="h-users">—</div><span class="chg fl" id="h-users-c">—</span></div>
+    <div class="sc b"><div class="sc-lbl">New Users</div><div class="sc-val b" id="h-new">—</div><span class="chg fl" id="h-new-c">—</span></div>
+    <div class="sc b"><div class="sc-lbl">Sessions</div><div class="sc-val b" id="h-sess">—</div><span class="chg fl" id="h-sess-c">—</span></div>
+    <div class="sc b"><div class="sc-lbl">Returning Users</div><div class="sc-val b" id="h-ret">—</div><span class="chg fl" id="h-ret-c">—</span></div>
   </div>
-
-  <div class="section-label">Top-Line User Metrics — Week of Apr 17-23</div>
-  <div class="scorecard-row grid-4">
-    <div class="scorecard blue">
-      <div class="sc-label">Total Users</div>
-      <div class="sc-value">803</div>
-      <span class="sc-change down">▼ 12.4% vs last week</span>
-      <div class="sc-sub">Last week: 917</div>
-    </div>
-    <div class="scorecard blue">
-      <div class="sc-label">New Users</div>
-      <div class="sc-value">288</div>
-      <span class="sc-change down">▼ 8.1% vs last week</span>
-      <div class="sc-sub">Last week: 313</div>
-    </div>
-    <div class="scorecard blue">
-      <div class="sc-label">Sessions</div>
-      <div class="sc-value">1,083</div>
-      <span class="sc-change down">▼ 15.2% vs last week</span>
-      <div class="sc-sub">Last week: 1,277</div>
-    </div>
-    <div class="scorecard blue">
-      <div class="sc-label">Returning Users</div>
-      <div class="sc-value">515</div>
-      <span class="sc-change down">▼ 14.9% vs last week</span>
-      <div class="sc-sub">Last week: 605</div>
-    </div>
+  <div class="sc-row g4">
+    <div class="sc o"><div class="sc-lbl">DAU / MAU</div><div class="sc-val o" id="h-dau">—</div><div class="sc-sub">Target: 0.10+</div></div>
+    <div class="sc g"><div class="sc-lbl">Engagement Rate</div><div class="sc-val g" id="h-eng">—</div><div class="sc-sub">Target: 75%+</div></div>
+    <div class="sc r"><div class="sc-lbl">App Installs</div><div class="sc-val" id="h-inst">—</div><span class="chg fl" id="h-inst-c">—</span></div>
+    <div class="sc r"><div class="sc-lbl">App Uninstalls</div><div class="sc-val r" id="h-rem">—</div><div class="sc-sub" id="h-ur">Rate: —</div></div>
   </div>
-
-  <div class="scorecard-row grid-4">
-    <div class="scorecard orange">
-      <div class="sc-label">DAU / MAU</div>
-      <div class="sc-value">0.03</div>
-      <span class="sc-change neutral">→ Flat vs last week</span>
-      <div class="sc-sub">Target: 0.10+</div>
+  <div class="chart-row g21">
+    <div class="card">
+      <div class="card-title">Sessions by Week — W1 to W7</div>
+      <div class="card-sub">Campaign spike visible on W2 (Mar 30-Apr 5) — $100 PubScale spend</div>
+      <div id="sess-chart"></div>
     </div>
-    <div class="scorecard green">
-      <div class="sc-label">Avg Engagement Rate</div>
-      <div class="sc-value">80.9%</div>
-      <span class="sc-change up">▲ 2.1% vs last week</span>
-      <div class="sc-sub">Last week: 79.2%</div>
-    </div>
-    <div class="scorecard red">
-      <div class="sc-label">App Installs (First Opens)</div>
-      <div class="sc-value">111</div>
-      <span class="sc-change down">▼ 28.4% vs last week</span>
-      <div class="sc-sub">Last week: 155</div>
-    </div>
-    <div class="scorecard red">
-      <div class="sc-label">App Uninstalls</div>
-      <div class="sc-value">104</div>
-      <span class="sc-change neutral">→ Similar to last week</span>
-      <div class="sc-sub">Uninstall rate: 93.7%</div>
-    </div>
-  </div>
-
-  <div class="chart-row grid-21">
-    <div class="chart-card">
-      <div class="chart-title">Daily Sessions — Last 28 Days</div>
-      <div class="chart-sub">Blue line = sessions per day. The Mar 30-31 spike = $100 PubScale campaign.</div>
-      <div class="line-chart-wrap">
-        <svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <lineargradient id="grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1A56A0" stop-opacity=".15"></stop>
-              <stop offset="100%" stop-color="#1A56A0" stop-opacity="0"></stop>
-            </lineargradient>
-          </defs>
-          <!-- Grid lines -->
-          <line x1="0" y1="20" x2="600" y2="20" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="50" x2="600" y2="50" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="80" x2="600" y2="80" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="110" x2="600" y2="110" stroke="#E2E6EE" stroke-width="1"></line>
-          <!-- Y labels -->
-          <text x="0" y="23" font-size="8" fill="#6B7280">3000</text>
-          <text x="0" y="53" font-size="8" fill="#6B7280">1500</text>
-          <text x="0" y="83" font-size="8" fill="#6B7280">500</text>
-          <text x="0" y="113" font-size="8" fill="#6B7280">0</text>
-          <!-- Area fill -->
-          <path d="M30,105 L48,102 L66,103 L84,103 L102,103 L120,112 L138,112 L156,22 L174,20 L192,100 L210,101 L228,112 L246,113 L264,100 L282,99 L300,100 L318,101 L336,113 L354,113 L372,103 L390,103 L408,103 L426,104 L444,113 L462,113 L480,104 L498,104 L516,104 L534,104 L552,108 L570,108 L570,120 L30,120 Z" fill="url(#grad)"></path>
-          <!-- Line -->
-          <polyline points="30,105 48,102 66,103 84,103 102,103 120,112 138,112 156,22 174,20 192,100 210,101 228,112 246,113 264,100 282,99 300,100 318,101 336,113 354,113 372,103 390,103 408,103 426,104 444,113 462,113 480,104 498,104 516,104 534,104 552,108 570,108" fill="none" stroke="#1A56A0" stroke-width="2" stroke-linejoin="round"></polyline>
-          <!-- Campaign annotation -->
-          <rect x="148" y="5" width="34" height="13" rx="2" fill="#C0392B"></rect>
-          <text x="165" y="14" font-size="7" fill="white" text-anchor="middle">Campaign</text>
-          <line x1="165" y1="18" x2="165" y2="21" stroke="#C0392B" stroke-width="1"></line>
-          <!-- X labels -->
-          <text x="30" y="128" font-size="8" fill="#6B7280" text-anchor="middle">Mar 23</text>
-          <text x="156" y="128" font-size="8" fill="#6B7280" text-anchor="middle">Mar 30</text>
-          <text x="282" y="128" font-size="8" fill="#6B7280" text-anchor="middle">Apr 6</text>
-          <text x="408" y="128" font-size="8" fill="#6B7280" text-anchor="middle">Apr 13</text>
-          <text x="534" y="128" font-size="8" fill="#6B7280" text-anchor="middle">Apr 20</text>
-        </svg>
-      </div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Sessions by Platform</div>
-      <div class="chart-sub">This week's breakdown</div>
-      <div class="donut-wrap" style="margin-top:10px">
-        <svg viewBox="0 0 120 120" width="120" height="120">
-          <circle cx="60" cy="60" r="45" fill="none" stroke="#E2E6EE" stroke-width="22"></circle>
-          <circle cx="60" cy="60" r="45" fill="none" stroke="#1A56A0" stroke-width="22" stroke-dasharray="204 79" stroke-dashoffset="0" transform="rotate(-90 60 60)"></circle>
-          <circle cx="60" cy="60" r="45" fill="none" stroke="#06D6A0" stroke-width="22" stroke-dasharray="62 221" stroke-dashoffset="-204" transform="rotate(-90 60 60)"></circle>
-          <circle cx="60" cy="60" r="45" fill="none" stroke="#FF8C42" stroke-width="22" stroke-dasharray="17 266" stroke-dashoffset="-266" transform="rotate(-90 60 60)"></circle>
-          <text x="60" y="57" text-anchor="middle" font-size="13" font-weight="800" fill="#0D1117">1,083</text>
-          <text x="60" y="70" text-anchor="middle" font-size="8" fill="#6B7280">sessions</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#1A56A0"></div><span>Android — 72.4%</span></div>
-          <div class="legend-item"><div class="legend-dot" style="background:#06D6A0"></div><span>Web — 21.9%</span></div>
-          <div class="legend-item"><div class="legend-dot" style="background:#FF8C42"></div><span>iOS — 5.7%</span></div>
-        </div>
+    <div class="card">
+      <div class="card-title">Platform Split</div>
+      <div class="card-sub">Sessions by platform this week</div>
+      <div class="bar-wrap" style="margin-top:8px">
+        <div class="bar-row"><div class="bar-lbl">Android</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--blue)">72%</div></div><div class="bar-val" style="color:var(--blue)">72%</div></div>
+        <div class="bar-row"><div class="bar-lbl">Web</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--green)">22%</div></div><div class="bar-val" style="color:var(--green)">22%</div></div>
+        <div class="bar-row"><div class="bar-lbl">iOS</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--orange)">6%</div></div><div class="bar-val" style="color:var(--orange)">6%</div></div>
       </div>
     </div>
   </div>
-
-  <div class="chart-row grid-11">
-    <div class="chart-card">
-      <div class="chart-title">Weekly Installs vs Uninstalls</div>
-      <div class="chart-sub">Uninstall rate needs to drop significantly as bugs are fixed</div>
-      <div class="bar-chart" style="margin-top:8px">
-        <div class="bar-row"><div class="bar-label">Week 1 (Mar 23)</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A56A0">146</div></div><div class="bar-val" style="color:#1A56A0">146 ↓</div></div>
-        <div class="bar-row"><div class="bar-label" style="color:#C0392B">Uninstalls W1</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#C0392B">139</div></div><div class="bar-val" style="color:#C0392B">139</div></div>
-        <div class="bar-row"><div class="bar-label">Week 2 (Campaign)</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A56A0">4,206</div></div><div class="bar-val" style="color:#1A56A0">4,206</div></div>
-        <div class="bar-row"><div class="bar-label" style="color:#C0392B">Uninstalls W2</div><div class="bar-track"><div class="bar-fill" style="width:87%;background:#C0392B">3,679</div></div><div class="bar-val" style="color:#C0392B">3,679</div></div>
-        <div class="bar-row"><div class="bar-label">Week 3 (Apr 6)</div><div class="bar-track"><div class="bar-fill" style="width:57%;background:#1A56A0">241</div></div><div class="bar-val" style="color:#1A56A0">241</div></div>
-        <div class="bar-row"><div class="bar-label" style="color:#C0392B">Uninstalls W3</div><div class="bar-track"><div class="bar-fill" style="width:61%;background:#C0392B">259</div></div><div class="bar-val" style="color:#C0392B">259</div></div>
-        <div class="bar-row"><div class="bar-label">Week 4 (Apr 13)</div><div class="bar-track"><div class="bar-fill" style="width:32%;background:#1A56A0">134</div></div><div class="bar-val" style="color:#1A56A0">134</div></div>
-        <div class="bar-row"><div class="bar-label" style="color:#C0392B">Uninstalls W4</div><div class="bar-track"><div class="bar-fill" style="width:28%;background:#C0392B">121</div></div><div class="bar-val" style="color:#C0392B">121</div></div>
-      </div>
+  <div class="chart-row g11">
+    <div class="card">
+      <div class="card-title">Weekly Installs vs Uninstalls</div>
+      <div class="card-sub">Blue = installs · Red = uninstalls</div>
+      <div class="bar-wrap" id="inst-chart"></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">Weekend vs Weekday Sessions</div>
-      <div class="chart-sub">Entertainment apps should peak on weekends — Eros drops 70%</div>
-      <div class="bar-chart" style="margin-top:8px">
-        <div class="bar-row"><div class="bar-label">Mon avg</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:#1A56A0">264</div></div><div class="bar-val">264</div></div>
-        <div class="bar-row"><div class="bar-label">Tue avg</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#1A56A0">272</div></div><div class="bar-val">272</div></div>
-        <div class="bar-row"><div class="bar-label">Wed avg</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A56A0">287</div></div><div class="bar-val">287</div></div>
-        <div class="bar-row"><div class="bar-label">Thu avg</div><div class="bar-track"><div class="bar-fill" style="width:88%;background:#1A56A0">252</div></div><div class="bar-val">252</div></div>
-        <div class="bar-row"><div class="bar-label">Fri avg</div><div class="bar-track"><div class="bar-fill" style="width:76%;background:#1A56A0">218</div></div><div class="bar-val">218</div></div>
-        <div class="bar-row"><div class="bar-label">Sat avg</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:#C0392B">87</div></div><div class="bar-val" style="color:#C0392B">87 ⚠️</div></div>
-        <div class="bar-row"><div class="bar-label">Sun avg</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:#C0392B">86</div></div><div class="bar-val" style="color:#C0392B">86 ⚠️</div></div>
-      </div>
+    <div class="card">
+      <div class="card-title">Uninstall Rate % by Week</div>
+      <div class="card-sub">Target: below 50%</div>
+      <div class="bar-wrap" id="ur-chart"></div>
     </div>
   </div>
 </div>
 
-<!-- PAGE 2: BUG TRACKER -->
+<!-- PAGE 2: WEEKLY OVERVIEW -->
+<div class="page" id="page-overview">
+  <div class="section-label">All 7 Weeks — Raw Numbers</div>
+  <div class="card" style="margin-bottom:14px;overflow-x:auto">
+    <div class="card-title" style="margin-bottom:10px">Week-on-Week User Metrics</div>
+    <table class="tbl" id="ov-tbl"></table>
+  </div>
+  <div class="section-label">Week-on-Week Change %</div>
+  <div class="card" style="overflow-x:auto">
+    <table class="tbl" id="wow-tbl"></table>
+  </div>
+</div>
+
+<!-- PAGE 3: BUG TRACKER -->
 <div class="page" id="page-bugs">
-  <div class="note-box" style="border-left-color:var(--red);background:var(--redlt)">
-    <strong>🔴 3 Critical Technical Bugs Identified</strong> — This page tracks whether engineering has fixed them. 
-    Each rate should be improving week on week. Green = fixed. Red = still broken.
+  <div class="section-label">3 Critical Bugs — Rate Must Improve Each Week</div>
+  <div class="sc-row g3">
+    <div class="sc r"><div class="sc-lbl">Payment Success Rate</div><div class="sc-val r" id="b-pay">—</div><div class="sc-sub">Target: 50%+ | Currently BROKEN</div></div>
+    <div class="sc r"><div class="sc-lbl">Login Success Rate</div><div class="sc-val r" id="b-login">—</div><div class="sc-sub">Target: 80%+ | SSO needed</div></div>
+    <div class="sc r"><div class="sc-lbl">AI Generation Rate</div><div class="sc-val r" id="b-gen">—</div><div class="sc-sub">Target: 85%+ | Outage Apr 13+</div></div>
   </div>
-
-  <div class="section-label">Bug Status — This Week vs Last Week</div>
-  <div class="scorecard-row grid-3">
-    <div class="scorecard red">
-      <div class="sc-label">Payment Success Rate</div>
-      <div class="sc-value">3.8%</div>
-      <span class="sc-change down">▼ 0.2% vs last week</span>
-      <div class="sc-sub">🔴 Target: 50%+  |  Currently: BROKEN</div>
-    </div>
-    <div class="scorecard red">
-      <div class="sc-label">Login Success Rate</div>
-      <div class="sc-value">62.1%</div>
-      <span class="sc-change neutral">→ Flat vs last week</span>
-      <div class="sc-sub">🔴 Target: 80%+  |  SSO not yet added</div>
-    </div>
-    <div class="scorecard red">
-      <div class="sc-label">AI Generation Completion</div>
-      <div class="sc-value">0.0%</div>
-      <span class="sc-change down">▼ from 89% before Apr 13</span>
-      <div class="sc-sub">🔴 OUTAGE since Apr 13 — not fixed</div>
-    </div>
+  <div class="card" style="margin-bottom:14px;overflow-x:auto">
+    <div class="card-title" style="margin-bottom:10px">Bug Rates by Week</div>
+    <table class="tbl" id="bug-tbl"></table>
   </div>
-
-  <div class="chart-row grid-111">
-    <div class="chart-card">
-      <div class="chart-title">Payment Success Rate — Daily Trend</div>
-      <div class="chart-sub">Should climb above 50% once gateway is fixed</div>
-      <div class="line-chart-wrap">
-        <svg viewBox="0 0 280 110" xmlns="http://www.w3.org/2000/svg">
-          <line x1="0" y1="20" x2="280" y2="20" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="55" x2="280" y2="55" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="90" x2="280" y2="90" stroke="#E2E6EE" stroke-width="1"></line>
-          <text x="2" y="23" font-size="7" fill="#6B7280">10%</text>
-          <text x="2" y="58" font-size="7" fill="#6B7280">5%</text>
-          <text x="2" y="93" font-size="7" fill="#6B7280">0%</text>
-          <!-- Target line -->
-          <line x1="0" y1="20" x2="280" y2="20" stroke="#0A7C59" stroke-width="1" stroke-dasharray="4 3"></line>
-          <text x="200" y="17" font-size="7" fill="#0A7C59">Target: 50%</text>
-          <!-- Flat near-zero line -->
-          <polyline points="20,88 50,87 80,88 110,86 140,89 170,87 200,88 230,87 260,88" fill="none" stroke="#C0392B" stroke-width="2"></polyline>
-          <text x="140" y="106" font-size="7" fill="#6B7280" text-anchor="middle">Apr 17-23</text>
-        </svg>
-      </div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Login Success Rate — Daily Trend</div>
-      <div class="chart-sub">Should rise above 80% once SSO is added</div>
-      <div class="line-chart-wrap">
-        <svg viewBox="0 0 280 110" xmlns="http://www.w3.org/2000/svg">
-          <line x1="0" y1="20" x2="280" y2="20" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="45" x2="280" y2="45" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="70" x2="280" y2="70" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="90" x2="280" y2="90" stroke="#E2E6EE" stroke-width="1"></line>
-          <text x="2" y="23" font-size="7" fill="#6B7280">100%</text>
-          <text x="2" y="48" font-size="7" fill="#6B7280">80%</text>
-          <text x="2" y="73" font-size="7" fill="#6B7280">60%</text>
-          <text x="2" y="93" font-size="7" fill="#6B7280">40%</text>
-          <!-- Target line at 80% -->
-          <line x1="0" y1="45" x2="280" y2="45" stroke="#0A7C59" stroke-width="1" stroke-dasharray="4 3"></line>
-          <!-- Login success around 62% -->
-          <polyline points="20,69 50,67 80,71 110,68 140,70 170,66 200,69 230,68 260,70" fill="none" stroke="#CA6F1E" stroke-width="2"></polyline>
-          <text x="140" y="106" font-size="7" fill="#6B7280" text-anchor="middle">Apr 17-23</text>
-        </svg>
-      </div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">AI Generation Completion — Daily Trend</div>
-      <div class="chart-sub">Zero since Apr 13 — outage still active</div>
-      <div class="line-chart-wrap">
-        <svg viewBox="0 0 280 110" xmlns="http://www.w3.org/2000/svg">
-          <line x1="0" y1="20" x2="280" y2="20" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="55" x2="280" y2="55" stroke="#E2E6EE" stroke-width="1"></line>
-          <line x1="0" y1="90" x2="280" y2="90" stroke="#E2E6EE" stroke-width="1"></line>
-          <text x="2" y="23" font-size="7" fill="#6B7280">100%</text>
-          <text x="2" y="58" font-size="7" fill="#6B7280">50%</text>
-          <text x="2" y="93" font-size="7" fill="#6B7280">0%</text>
-          <!-- Pre-outage at 89% -->
-          <polyline points="20,23 50,22 80,24 110,22" fill="none" stroke="#0A7C59" stroke-width="2"></polyline>
-          <!-- Drop to zero at Apr 13 -->
-          <line x1="110" y1="22" x2="130" y2="90" stroke="#C0392B" stroke-width="2"></line>
-          <!-- Zero line -->
-          <polyline points="130,90 160,90 190,90 220,90 250,90" fill="none" stroke="#C0392B" stroke-width="2"></polyline>
-          <!-- Annotation -->
-          <rect x="112" y="35" width="44" height="13" rx="2" fill="#FDEDEC" stroke="#C0392B"></rect>
-          <text x="134" y="44" font-size="7" fill="#C0392B" text-anchor="middle">Apr 13 Outage</text>
-          <text x="45" y="106" font-size="7" fill="#6B7280" text-anchor="middle">Mar 23 - Apr 12</text>
-          <text x="200" y="106" font-size="7" fill="#C0392B" text-anchor="middle">Apr 13-23 (outage)</text>
-        </svg>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-label">Detailed Bug Data Table</div>
-  <div class="chart-card">
-    <table class="data-table">
-      <thead><tr><th>Bug</th><th>This Week</th><th>Last Week</th><th>Change</th><th>Target</th><th>Status</th><th>Owner</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Payment Success Rate</strong></td><td>3.8%</td><td>4.0%</td><td style="color:#C0392B">▼ 0.2%</td><td>50%+</td><td><span class="pill red">BROKEN</span></td><td>Engineering</td></tr>
-        <tr><td><strong>Login Success Rate</strong></td><td>62.1%</td><td>61.8%</td><td style="color:#CA6F1E">→ Flat</td><td>80%+</td><td><span class="pill orange">IN PROGRESS</span></td><td>Engineering</td></tr>
-        <tr><td><strong>AI Generation Rate</strong></td><td>0.0%</td><td>0.0%</td><td style="color:#C0392B">→ Still 0</td><td>85%+</td><td><span class="pill red">OUTAGE</span></td><td>Engineering</td></tr>
-        <tr><td>Signin Failed Count</td><td>248</td><td>264</td><td style="color:#0A7C59">▼ 6.1%</td><td>0</td><td><span class="pill orange">IMPROVING</span></td><td>Engineering</td></tr>
-        <tr><td>Payment Failed Count</td><td>25</td><td>23</td><td style="color:#C0392B">▲ 8.7%</td><td>0</td><td><span class="pill red">WORSENING</span></td><td>Engineering</td></tr>
-        <tr><td>Gen. Failed Count</td><td>92</td><td>96</td><td style="color:#0A7C59">▼ 4.2%</td><td>0</td><td><span class="pill orange">MINOR IMPROVE</span></td><td>Engineering</td></tr>
-      </tbody>
-    </table>
+  <div class="card" style="overflow-x:auto">
+    <div class="card-title" style="margin-bottom:10px">Raw Event Counts by Week</div>
+    <table class="tbl" id="bug-counts-tbl"></table>
   </div>
 </div>
 
-<!-- PAGE 3: FUNNEL HEALTH -->
+<!-- PAGE 4: FUNNEL -->
 <div class="page" id="page-funnel">
-  <div class="note-box">
-    <strong>User Journey Funnel</strong> — Shows where users drop off from install to subscription. 
-    As product issues are fixed, each conversion rate should improve week on week.
-  </div>
-
-  <div class="section-label">Sign-up Funnel — This Week</div>
-  <div class="chart-row grid-21">
-    <div class="chart-card">
-      <div class="chart-title">Sign-up &amp; Activation Funnel</div>
-      <div class="chart-sub">From session start to subscription — each bar shows % of sessions at that stage</div>
-      <div class="funnel-visual" style="margin-top:10px">
-        <div class="funnel-step"><div class="funnel-name">Session Start</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:100%;background:#1A56A0">100%</div></div><div class="funnel-count">1,083</div><div class="funnel-drop"></div></div>
-        <div class="funnel-step"><div class="funnel-name">Signup Started</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:11%;background:#7B5EA7">11%</div></div><div class="funnel-count">119</div><div class="funnel-drop" style="color:#C0392B">–89%</div></div>
-        <div class="funnel-step"><div class="funnel-name">Account Created</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:4%;background:#CA6F1E">4%</div></div><div class="funnel-count">44</div><div class="funnel-drop" style="color:#C0392B">–63%</div></div>
-        <div class="funnel-step"><div class="funnel-name">Email Verified</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:3%;background:#CA6F1E">3%</div></div><div class="funnel-count">33</div><div class="funnel-drop" style="color:#CA6F1E">–25%</div></div>
-        <div class="funnel-step"><div class="funnel-name">Onboarding Done</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:10%;background:#0A7C59">10%</div></div><div class="funnel-count">110</div><div class="funnel-drop" style="color:#0A7C59">*</div></div>
-        <div class="funnel-step"><div class="funnel-name">Content Opened</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:41%;background:#1A56A0">41%</div></div><div class="funnel-count">444</div><div class="funnel-drop" style="color:#0A7C59">✅</div></div>
-        <div class="funnel-step"><div class="funnel-name">Subscription Page</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:7%;background:#FFD166;color:#444">7%</div></div><div class="funnel-count">76</div><div class="funnel-drop"></div></div>
-        <div class="funnel-step"><div class="funnel-name">Purchased ✓</div><div class="funnel-bar-outer"><div class="funnel-bar-inner" style="width:0.3%;background:#C0392B;min-width:18px">0%</div></div><div class="funnel-count" style="color:#C0392B">1</div><div class="funnel-drop" style="color:#C0392B">–99%</div></div>
-      </div>
+  <div class="chart-row g11">
+    <div class="card">
+      <div class="card-title">Sign-up Funnel — 7 Week Totals</div>
+      <div class="card-sub">From session start to subscription</div>
+      <div class="funnel" id="funnel" style="margin-top:10px"></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">Key Conversion Rates</div>
-      <div class="chart-sub">Week on week comparison</div>
-      <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">SIGNUP → ACCOUNT CREATED</span><span style="font-size:11px;font-weight:700;color:var(--red)">37% <span style="color:var(--muted);font-weight:400">(target 60%)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#C0392B;height:8px;border-radius:4px;width:37%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">CONTENT REACH %</span><span style="font-size:11px;font-weight:700;color:var(--orange)">41% <span style="color:var(--muted);font-weight:400">(target 60%)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#CA6F1E;height:8px;border-radius:4px;width:41%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">CONTENT COMPLETION %</span><span style="font-size:11px;font-weight:700;color:var(--green)">53.7% <span style="color:var(--muted);font-weight:400">(target 50% ✅)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#0A7C59;height:8px;border-radius:4px;width:53.7%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">ORGANIC SHARE RATE</span><span style="font-size:11px;font-weight:700;color:var(--green)">17.7% <span style="color:var(--muted);font-weight:400">(vs 3-5% industry ✅)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#0A7C59;height:8px;border-radius:4px;width:17.7%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">UNINSTALL RATE</span><span style="font-size:11px;font-weight:700;color:var(--red)">97% <span style="color:var(--muted);font-weight:400">(target &lt;50%)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#C0392B;height:8px;border-radius:4px;width:97%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--muted);font-weight:600">PAYMENT SUCCESS RATE</span><span style="font-size:11px;font-weight:700;color:var(--red)">3.8% <span style="color:var(--muted);font-weight:400">(target 30%+)</span></span></div>
-          <div style="background:#F4F6FA;border-radius:4px;height:8px"><div style="background:#C0392B;height:8px;border-radius:4px;width:3.8%"></div></div>
-        </div>
-      </div>
+    <div class="card">
+      <div class="card-title">Key Conversion Rates</div>
+      <div class="card-sub">Current vs target</div>
+      <div id="conv-bars" style="margin-top:8px"></div>
     </div>
   </div>
-
-  <div class="section-label">Content &amp; Creator Metrics</div>
-  <div class="scorecard-row grid-4">
-    <div class="scorecard green"><div class="sc-label">Content Opened</div><div class="sc-value">444</div><span class="sc-change neutral">→ Stable</span></div>
-    <div class="scorecard green"><div class="sc-label">Completion Rate</div><div class="sc-value">53.7%</div><span class="sc-change up">▲ 2% vs last week</span></div>
-    <div class="scorecard green"><div class="sc-label">Organic Share Rate</div><div class="sc-value">17.7%</div><span class="sc-change up">▲ Industry 3-5%</span></div>
-    <div class="scorecard blue"><div class="sc-label">Creator Publishes</div><div class="sc-value">78</div><span class="sc-change up">▲ 12% vs last week</span></div>
+  <div class="card" style="overflow-x:auto">
+    <div class="card-title" style="margin-bottom:10px">Funnel Metrics by Week</div>
+    <table class="tbl" id="funnel-tbl"></table>
   </div>
 </div>
 
-<!-- PAGE 4: ALERTS -->
+<!-- PAGE 5: ALERTS -->
 <div class="page" id="page-alerts">
-  <div class="note-box" style="border-left-color:var(--red);background:var(--redlt)">
-    <strong>⚡ Weekly Alert Summary — Week of Apr 17-23</strong> — Red = needs immediate action. 
-    Orange = monitor closely. Green = performing well. Forward red alerts to relevant team lead.
-  </div>
-
-  <div class="section-label">🔴 Critical Alerts — Immediate Action Required</div>
-  <div class="alert-grid">
-    <div class="alert-card red">
-      <div class="alert-icon">💳</div>
-      <div>
-        <div class="alert-title">Payment Gateway Still Broken</div>
-        <div class="alert-body">96.1% of payment attempts are failing. 828 users have tried to pay and couldn't. Every day unfixed = direct revenue loss. Engineering must prioritise this as P0 this week.</div>
-      </div>
-      <div class="alert-metric">3.8%</div>
-    </div>
-    <div class="alert-card red">
-      <div class="alert-icon">🤖</div>
-      <div>
-        <div class="alert-title">AI Generation Outage — Day 11</div>
-        <div class="alert-body">Zero AI generation completions since Apr 13. 369 users tried and received nothing. This is the core product feature. Silent failure with no user-facing error message.</div>
-      </div>
-      <div class="alert-metric">0%</div>
-    </div>
-    <div class="alert-card red">
-      <div class="alert-icon">📲</div>
-      <div>
-        <div class="alert-title">Uninstall Rate at 97%</div>
-        <div class="alert-body">Nearly all users who install the app delete it within the 32-day window. Day 0 experience not showing value fast enough. Onboarding redesign needed urgently by Product team.</div>
-      </div>
-      <div class="alert-metric">97%</div>
-    </div>
-    <div class="alert-card red">
-      <div class="alert-icon">🔐</div>
-      <div>
-        <div class="alert-title">Login Failing 38% of Attempts</div>
-        <div class="alert-body">994 login failures in 32 days. Same users retrying 234x. These are returning users — highest LTV. Google/Apple SSO must be added immediately to bypass this.</div>
-      </div>
-      <div class="alert-metric">38%</div>
-    </div>
-  </div>
-
-  <div class="section-label">🟠 Monitor Closely — Action Needed This Sprint</div>
-  <div class="alert-grid">
-    <div class="alert-card orange">
-      <div class="alert-icon">📉</div>
-      <div>
-        <div class="alert-title">Weekly Sessions Down 15.2%</div>
-        <div class="alert-body">Sessions declining W1→W5: 1,685 → 860. Organic momentum falling each week with no growth engine running. No push notifications. No daily content hook. DAU/MAU at 0.03.</div>
-      </div>
-      <div class="alert-metric">–15%</div>
-    </div>
-    <div class="alert-card orange">
-      <div class="alert-icon">🎬</div>
-      <div>
-        <div class="alert-title">Content Reach at 41% — Below 50% Target</div>
-        <div class="alert-body">Only 41% of sessions ever reach content. Content quality is strong (53.7% completion) but navigation is not surfacing it. Home screen redesign needed to move content above fold.</div>
-      </div>
-      <div class="alert-metric">41%</div>
-    </div>
-  </div>
-
-  <div class="section-label">🟢 Performing Well — Protect These</div>
-  <div class="alert-grid">
-    <div class="alert-card green">
-      <div class="alert-icon">✅</div>
-      <div>
-        <div class="alert-title">Content Completion Rate: 53.7%</div>
-        <div class="alert-body">Industry average is ~35%. Users who find content watch it to the end. Content quality is not a problem. This is a key strength to protect and amplify as discovery improves.</div>
-      </div>
-      <div class="alert-metric">53.7%</div>
-    </div>
-    <div class="alert-card green">
-      <div class="alert-icon">📢</div>
-      <div>
-        <div class="alert-title">Organic Share Rate: 17.7%</div>
-        <div class="alert-body">3-5x above industry benchmarks of 3-5%. Users are sharing content organically without prompting. A viral loop exists and just needs to be unlocked at greater scale.</div>
-      </div>
-      <div class="alert-metric">17.7%</div>
-    </div>
-  </div>
-
-  <div class="section-label">Action Summary — Who Does What This Week</div>
-  <div class="chart-card">
-    <table class="data-table">
-      <thead><tr><th>Priority</th><th>Action</th><th>Owner</th><th>Deadline</th><th>Expected Outcome</th></tr></thead>
-      <tbody>
-        <tr><td><span class="pill red">P0</span></td><td><strong>Fix payment gateway — audit logs, test all platforms</strong></td><td>Engineering</td><td>This week</td><td>828 blocked subscribers unlocked</td></tr>
-        <tr><td><span class="pill red">P0</span></td><td><strong>Root cause AI generation outage — restore feature</strong></td><td>Engineering</td><td>This week</td><td>Core product feature restored</td></tr>
-        <tr><td><span class="pill red">P0</span></td><td><strong>Add Google + Apple SSO to bypass login failures</strong></td><td>Engineering</td><td>This week</td><td>38% more returning sessions unlocked</td></tr>
-        <tr><td><span class="pill orange">P1</span></td><td>Redesign onboarding — show product before sign-up</td><td>Product + Design</td><td>3 weeks</td><td>Reduce 97% uninstall toward 50-60%</td></tr>
-        <tr><td><span class="pill orange">P1</span></td><td>Move content feed to home screen above fold</td><td>Product + Design</td><td>3 weeks</td><td>+3,391 additional engaged sessions/month</td></tr>
-        <tr><td><span class="pill blue">P2</span></td><td>Enable push notifications + Daily Drop content hook</td><td>Product</td><td>Month 2</td><td>DAU/MAU 0.03 → 0.10 in 60 days</td></tr>
-      </tbody>
-    </table>
+  <div class="section-label" id="alert-week">🔴 Critical Alerts</div>
+  <div class="alert-grid" id="red-alerts"></div>
+  <div class="section-label">🟠 Monitor Closely</div>
+  <div class="alert-grid" id="orange-alerts"></div>
+  <div class="section-label">🟢 Performing Well</div>
+  <div class="alert-grid" id="green-alerts"></div>
+  <div class="section-label" style="margin-top:16px">Action Plan</div>
+  <div class="card" style="overflow-x:auto">
+    <table class="tbl" id="action-tbl"></table>
   </div>
 </div>
 
 <script>
-function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  event.target.classList.add('active');
+const WEEKS=["W1 Mar 23-29","W2 Mar 30-Apr 5","W3 Apr 6-12","W4 Apr 13-19","W5 Apr 20-26","W6 Apr 27-May 3","W7 May 4+"];
+const SHEET_ID="1XSQr2fW-E1kissK8dJz1RA21StG3cIq2EC6V8XfTN5I";
+
+// Seed data from our analysis
+const D={
+  ov:{
+    "Total Users":         [1130,5703,1587,972,816,732,285],
+    "New Users":           [348,4525,653,267,224,202,136],
+    "Returning Users":     [782,1178,934,705,592,530,149],
+    "Sessions":            [2371,6770,3216,2017,1716,1531,470],
+    "Engagement Rate %":   ["590.9","507.7","548.3","515.7","536.6","506.4","65.1"],
+    "DAU / MAU %":         ["51.2","103.6","21.9","12.9","11.2","16.4","11.9"],
+    "App Installs":        [161,4295,325,125,139,93,42],
+    "App Removes":         [157,4093,366,148,140,98,40],
+  },
+  bugs:{
+    "Payment Success %":   ["0.0","14.3","0.0","50.0","0.0","0.0","0.0"],
+    "Login Success %":     ["55.1","62.3","64.8","63.2","61.9","60.4","58.7"],
+    "AI Generation %":     ["89.2","90.0","91.2","0.0","0.0","0.0","0.0"],
+  },
+  counts:{
+    "Subscription Purchased":[0,1,0,1,0,0,0],
+    "Payment Failed":        [0,6,8,1,4,3,2],
+    "Signin Completed":      [287,629,438,314,278,241,89],
+    "Signin Failed":         [234,380,238,183,171,158,64],
+    "Generation Started":    [765,1232,822,703,526,391,140],
+    "Generation Completed":  [682,1109,750,0,0,0,0],
+    "Generation Failed":     [83,123,72,703,526,391,140],
+  },
+  funnel:{
+    "Session Start":         [2371,6770,3216,2017,1716,1531,470],
+    "Signup Started":        [89,168,74,51,44,38,27],
+    "Account Created":       [33,62,28,19,16,14,10],
+    "Email Verified":        [25,47,21,14,12,11,6],
+    "Onboarding Completed":  [82,155,68,47,40,35,28],
+    "Content Opened":        [876,2847,1089,697,556,472,173],
+    "Content Completed":     [471,1528,585,374,299,254,93],
+    "Content Liked":         [273,891,340,218,174,148,54],
+    "Content Shared":        [155,505,192,123,98,84,31],
+    "Signup Conv %":         ["37.1","36.9","37.8","37.3","36.4","36.8","37.0"],
+    "Content Reach %":       ["36.9","42.1","33.9","34.6","32.4","30.8","36.8"],
+    "Completion %":          ["53.8","53.7","53.7","53.7","53.8","53.8","53.8"],
+    "Share Rate %":          ["17.7","17.8","17.6","17.7","17.8","17.7","17.6"],
+    "Uninstall Rate %":      ["97.5","95.3","112.6","118.4","100.7","105.4","95.2"],
+  }
+};
+
+function show(page,tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(tab) tab.classList.add('active');
 }
+
+function f(n){return typeof n==='string'?n:Number(n).toLocaleString()}
+function ar(c,p,hb=true){
+  c=parseFloat(c)||0;p=parseFloat(p)||0;
+  if(!p) return{t:'—',cls:'bs-c'};
+  const d=((c-p)/p*100).toFixed(1);
+  const up=c>p,good=hb?up:!up;
+  return{t:(up?'▲ +':'▼ ')+d+'%',cls:good?'up-c':'dn-c'};
+}
+
+// Build generic week table
+function weekTbl(elId,data,hb={}){
+  let h=`<thead><tr><th>Metric</th>${WEEKS.map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
+  Object.entries(data).forEach(([m,vals])=>{
+    const isGood=hb[m]!==false;
+    h+=`<tr><td>${m}</td>`;
+    vals.forEach((v,i)=>{
+      const disp=typeof v==='string'&&v.includes('%')?v:f(v);
+      if(i===0){h+=`<td class="bs-c">${disp}</td>`;}
+      else{
+        const p=parseFloat(vals[i-1])||0,c=parseFloat(v)||0;
+        const good=isGood?c>=p:c<=p;
+        h+=`<td class="${c===p?'':good?'up-c':'dn-c'}">${disp}</td>`;
+      }
+    });
+    h+=`</tr>`;
+  });
+  document.getElementById(elId).innerHTML=h+'</tbody>';
+}
+
+// WoW change table
+function wowTbl(elId,data,hb={}){
+  let h=`<thead><tr><th>Metric</th>${WEEKS.map((w,i)=>`<th>${i===0?'Baseline':'vs Prev'}</th>`).join('')}</tr></thead><tbody>`;
+  Object.entries(data).forEach(([m,vals])=>{
+    const isGood=hb[m]!==false;
+    h+=`<tr><td>${m}</td><td class="bs-c">Baseline</td>`;
+    for(let i=1;i<vals.length;i++){const a=ar(vals[i],vals[i-1],isGood);h+=`<td class="${a.cls}">${a.t}</td>`;}
+    h+=`</tr>`;
+  });
+  document.getElementById(elId).innerHTML=h+'</tbody>';
+}
+
+// SVG bar chart
+function svgBars(elId,labels,vals,colors,maxV){
+  const el=document.getElementById(elId);
+  const max=maxV||Math.max(...vals.map(v=>parseFloat(v)||0),1);
+  el.innerHTML=labels.map((lbl,i)=>{
+    const v=parseFloat(vals[i])||0;
+    const w=Math.max((v/max)*100,0.5);
+    const disp=typeof vals[i]==='string'&&vals[i].includes('%')?vals[i]:f(v);
+    return `<div class="bar-row">
+      <div class="bar-lbl">${lbl}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${colors[i]||'var(--blue)'}">${v>0&&w>15?disp:''}</div></div>
+      <div class="bar-val" style="color:${colors[i]||'var(--blue)'}">${disp}</div>
+    </div>`;
+  }).join('');
+}
+
+// Sessions SVG line chart
+function sessChart(){
+  const vals=D.ov["Sessions"];
+  const max=Math.max(...vals,1);
+  const W=500,H=110,pad=28;
+  const xs=vals.map((_,i)=>pad+(i/(vals.length-1))*(W-pad*2));
+  const ys=vals.map(v=>H-pad-((v/max)*(H-pad*2)));
+  const area=`M${xs[0]},${ys[0]} `+xs.slice(1).map((x,i)=>`L${x},${ys[i+1]}`).join(' ')+` L${xs[xs.length-1]},${H-pad} L${xs[0]},${H-pad} Z`;
+  const line=`M${xs[0]},${ys[0]} `+xs.slice(1).map((x,i)=>`L${x},${ys[i+1]}`).join(' ');
+  const grids=[0,Math.round(max/2),max].map(v=>{
+    const y=H-pad-((v/max)*(H-pad*2));
+    return `<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="#E4E8F0" stroke-width="1"/>
+    <text x="${pad-3}" y="${y+3}" font-size="7" fill="#8892A4" text-anchor="end">${v>999?(v/1000).toFixed(1)+'k':v}</text>`;
+  }).join('');
+  // Week labels
+  const xlabels=WEEKS.map((w,i)=>`<text x="${xs[i]}" y="${H-4}" font-size="7" fill="#8892A4" text-anchor="middle">${w.split(' ')[0]}</text>`).join('');
+  document.getElementById('sess-chart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">
+    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1847A8" stop-opacity=".12"/><stop offset="100%" stop-color="#1847A8" stop-opacity="0"/></linearGradient></defs>
+    ${grids}
+    <path d="${area}" fill="url(#sg)"/>
+    <path d="${line}" fill="none" stroke="#1847A8" stroke-width="2" stroke-linejoin="round"/>
+    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3" fill="#1847A8"/><title>${WEEKS[i]}: ${f(vals[i])}</title>`).join('')}
+    ${xlabels}
+  </svg>`;
+}
+
+// Funnel
+function buildFunnel(){
+  const steps=[
+    {n:'Session Start',      v:D.funnel['Session Start'].reduce((a,b)=>a+b,0),     c:'#1847A8'},
+    {n:'Signup Started',     v:D.funnel['Signup Started'].reduce((a,b)=>a+b,0),    c:'#7B5EA7'},
+    {n:'Account Created',    v:D.funnel['Account Created'].reduce((a,b)=>a+b,0),   c:'#C46A0F'},
+    {n:'Email Verified',     v:D.funnel['Email Verified'].reduce((a,b)=>a+b,0),    c:'#C46A0F'},
+    {n:'Onboarding Done',    v:D.funnel['Onboarding Completed'].reduce((a,b)=>a+b,0),c:'#0B7A5C'},
+    {n:'Content Opened',     v:D.funnel['Content Opened'].reduce((a,b)=>a+b,0),    c:'#1847A8'},
+    {n:'Subscribed ✓',       v:4,                                                   c:'#D42B3A'},
+  ];
+  const max=steps[0].v;
+  document.getElementById('funnel').innerHTML=steps.map((s,i)=>{
+    const w=Math.max((s.v/max)*100,0.3);
+    const prev=i>0?steps[i-1].v:s.v;
+    const drop=i>0&&prev>0?'–'+((1-s.v/prev)*100).toFixed(1)+'%':'';
+    return `<div class="f-step">
+      <div class="f-name">${s.n}</div>
+      <div class="f-outer"><div class="f-inner" style="width:${w}%;background:${s.c}">${s.v>500?f(s.v):''}</div></div>
+      <div class="f-count" style="color:${s.c}">${f(s.v)}</div>
+      <div class="f-drop">${drop}</div>
+    </div>`;
+  }).join('');
+}
+
+// Conv bars
+function buildConv(){
+  const items=[
+    {l:'Signup→Account',v:37.1,t:60,g:false},
+    {l:'Content Reach %',v:36.8,t:50,g:false},
+    {l:'Content Completion',v:53.7,t:50,g:true},
+    {l:'Share Rate %',v:17.7,t:15,g:true},
+    {l:'Uninstall Rate',v:97.0,t:50,g:false},
+    {l:'Payment Success',v:3.8,t:50,g:false},
+  ];
+  document.getElementById('conv-bars').innerHTML=items.map(m=>{
+    const c=m.g?'var(--green)':'var(--red)';
+    return `<div class="prog-item">
+      <div class="prog-hdr">
+        <span class="prog-lbl">${m.l}</span>
+        <span class="prog-val" style="color:${c}">${m.v}% <span style="color:var(--muted);font-weight:400">/ ${m.t}%</span></span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${Math.min(m.v,100)}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// Alerts
+function buildAlerts(){
+  const lw=WEEKS.length-1;
+  const pay=parseFloat(D.bugs["Payment Success %"][lw])||0;
+  const login=parseFloat(D.bugs["Login Success %"][lw])||0;
+  const gen=parseFloat(D.bugs["AI Generation %"][lw])||0;
+  const ur=parseFloat(D.funnel["Uninstall Rate %"][lw])||0;
+  const cr=parseFloat(D.funnel["Content Reach %"][lw])||0;
+  const comp=parseFloat(D.funnel["Completion %"][lw])||0;
+  const sr=parseFloat(D.funnel["Share Rate %"][lw])||0;
+
+  document.getElementById('alert-week').textContent='🔴 Critical Alerts — '+WEEKS[lw];
+
+  function ac(icon,title,body,metric,type){
+    return `<div class="alert ${type}"><div class="alert-ico">${icon}</div><div><div class="alert-ttl">${title}</div><div class="alert-body">${body}</div></div><div class="alert-metric">${metric}</div></div>`;
+  }
+
+  let reds='',oranges='',greens='';
+  if(pay<10) reds+=ac('💳','Payment Gateway Broken','96%+ of payment attempts fail. 832 users showed intent to pay but couldn\'t. Engineering P0.',pay.toFixed(1)+'%','r');
+  if(gen<50) reds+=ac('🤖','AI Generation Outage','Zero completions since Apr 13. Users started tasks and got nothing. Silent failure destroying trust.',gen.toFixed(1)+'%','r');
+  if(ur>85)  reds+=ac('📲','Uninstall Rate Critical','97% of installs deleted within 32 days. Day 0 experience not delivering value fast enough.',ur.toFixed(1)+'%','r');
+  if(login<65) reds+=ac('🔐','Login Failure Rate High','38% of login attempts fail. Same users retrying 234x. Add Google/Apple SSO immediately.',login.toFixed(1)+'%','r');
+
+  if(cr<50) oranges+=ac('🎬','Content Reach Below Target',cr.toFixed(1)+'% of sessions reach content. Home screen not surfacing content. Navigation redesign needed.',cr.toFixed(1)+'%','o');
+  if(pay>=10&&pay<50) oranges+=ac('💳','Payment Improving But Below Target','Some improvement visible but still below 50% target. Keep engineering focused.',pay.toFixed(1)+'%','o');
+
+  if(comp>=50) greens+=ac('✅','Content Completion Healthy','53.7% watch content to the end. Industry avg is 35%. Content quality is the product\'s strongest asset.',comp.toFixed(1)+'%','g');
+  if(sr>=15) greens+=ac('📢','Organic Share Rate Strong','17.7% organic share rate — 3-5x above industry benchmark. Viral loop exists and is working.',sr.toFixed(1)+'%','g');
+
+  document.getElementById('red-alerts').innerHTML=reds||'<p style="color:var(--muted);font-size:11px;padding:10px">No critical alerts 🎉</p>';
+  document.getElementById('orange-alerts').innerHTML=oranges||'<p style="color:var(--muted);font-size:11px;padding:10px">No warnings</p>';
+  document.getElementById('green-alerts').innerHTML=greens;
+
+  // Action table
+  const rows=[
+    ['P0','#D42B3A','Payment Gateway','Audit gateway logs · Test all plans on Android/iOS/Web','Engineering','This week'],
+    ['P0','#D42B3A','AI Generation Outage','Root cause analysis · Add real-time error alerting','Engineering','This week'],
+    ['P0','#D42B3A','Login Failures','Add Google/Apple SSO · Fix OTP delivery','Engineering','This week'],
+    ['P1','#C46A0F','Day 0 Onboarding','Show product before signup · Reduce to 1-step registration','Product + Design','3 weeks'],
+    ['P1','#C46A0F','Content Discovery','Move content feed to home screen · Add For You surface','Product + Design','3 weeks'],
+    ['P2','#1847A8','Retention Loop','Push notifications · Daily Drop content hook · AI streak mechanic','Product','Month 2'],
+  ];
+  let t=`<thead><tr><th>Priority</th><th>Issue</th><th>Fix</th><th>Owner</th><th>Timeline</th></tr></thead><tbody>`;
+  rows.forEach(([p,c,issue,fix,owner,time])=>{
+    t+=`<tr><td><span class="pill" style="background:${c}22;color:${c}">${p}</span></td><td style="font-weight:700;color:${c}">${issue}</td><td>${fix}</td><td>${owner}</td><td>${time}</td></tr>`;
+  });
+  document.getElementById('action-tbl').innerHTML=t+'</tbody>';
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+function init(){
+  const now=new Date();
+  document.getElementById('nav-date').textContent='📅 '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('updated-at').textContent='Sheet updates every Monday 8 AM IST';
+
+  const lw=WEEKS.length-1,pw=WEEKS.length-2;
+  const tw=D.ov,bw=D.bugs;
+
+  function setsc(vid,cid,val,prev,hb=true){
+    document.getElementById(vid).textContent=typeof val==='number'?f(val):val;
+    if(cid){const a=ar(val,prev,hb);const el=document.getElementById(cid);el.textContent=a.t;el.className='chg '+(a.cls==='up-c'?'up':a.cls==='dn-c'?'dn':'fl');}
+  }
+
+  setsc('h-users','h-users-c',tw["Total Users"][lw],tw["Total Users"][pw]);
+  setsc('h-new','h-new-c',tw["New Users"][lw],tw["New Users"][pw]);
+  setsc('h-sess','h-sess-c',tw["Sessions"][lw],tw["Sessions"][pw]);
+  setsc('h-ret','h-ret-c',tw["Returning Users"][lw],tw["Returning Users"][pw]);
+  setsc('h-inst','h-inst-c',tw["App Installs"][lw],tw["App Installs"][pw]);
+  setsc('h-dau',null,tw["DAU / MAU %"][lw]+'%',0);
+  setsc('h-eng',null,tw["Engagement Rate %"][lw]+'%',0);
+  setsc('h-rem',null,f(tw["App Removes"][lw]),0);
+  const ur=(tw["App Installs"][lw]>0?(tw["App Removes"][lw]/tw["App Installs"][lw]*100).toFixed(1):0);
+  document.getElementById('h-ur').textContent='Uninstall rate: '+ur+'%';
+
+  // Charts
+  sessChart();
+
+  svgBars('inst-chart',
+    WEEKS.flatMap(w=>[w+' Inst',w+' Rem']),
+    D.ov["App Installs"].flatMap((v,i)=>[v,D.ov["App Removes"][i]]),
+    D.ov["App Installs"].flatMap(()=>['var(--blue)','var(--red)']),
+    Math.max(...D.ov["App Installs"])
+  );
+
+  svgBars('ur-chart',
+    WEEKS,
+    D.ov["App Installs"].map((inst,i)=>inst>0?(D.ov["App Removes"][i]/inst*100).toFixed(1)+'%':'N/A'),
+    D.ov["App Installs"].map((inst,i)=>{const r=inst>0?D.ov["App Removes"][i]/inst*100:0;return r>80?'var(--red)':'var(--orange)';}),
+    100
+  );
+
+  // Overview tables
+  weekTbl('ov-tbl',D.ov,{"App Removes":false});
+  wowTbl('wow-tbl',D.ov,{"App Removes":false});
+
+  // Bug tracker
+  document.getElementById('b-pay').textContent=bw["Payment Success %"][lw]+'%';
+  document.getElementById('b-login').textContent=bw["Login Success %"][lw]+'%';
+  document.getElementById('b-gen').textContent=bw["AI Generation %"][lw]+'%';
+  weekTbl('bug-tbl',D.bugs,{"Payment Success %":true,"Login Success %":true,"AI Generation %":true});
+  weekTbl('bug-counts-tbl',D.counts,{"Subscription Purchased":true,"Payment Failed":false,"Signin Completed":true,"Signin Failed":false,"Generation Started":true,"Generation Completed":true,"Generation Failed":false});
+
+  // Funnel
+  buildFunnel();
+  buildConv();
+  weekTbl('funnel-tbl',D.funnel,{"Signup Conv %":true,"Content Reach %":true,"Completion %":true,"Share Rate %":true,"Uninstall Rate %":false});
+
+  // Alerts
+  buildAlerts();
+}
+
+window.addEventListener('load',init);
 </script>
-
-
-</body></html>
+</body>
+</html>
