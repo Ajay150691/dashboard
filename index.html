@@ -3,527 +3,1126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eros Universe — Weekly Management Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Eros Universe — Analytics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#F0F2F7;--white:#FFFFFF;--dark:#0A0E1A;
-  --blue:#1847A8;--bluelt:#E8EFFE;
-  --red:#D42B3A;--redlt:#FDEDEF;
-  --green:#0B7A5C;--grnlt:#E6F7F2;
-  --orange:#C46A0F;--orglt:#FEF5E8;
-  --muted:#8892A4;--border:#E4E8F0;
-  --font:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #F4F6FA;
+  color: #1A1A2E;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
-body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:100vh}
-.nav{background:#0A0E1A;padding:0 28px;display:flex;align-items:center;position:sticky;top:0;z-index:100;height:56px;box-shadow:0 1px 0 rgba(255,255,255,.06)}
-.nav-brand{display:flex;align-items:center;gap:10px;padding-right:20px;border-right:1px solid rgba(255,255,255,.1)}
-.logo{width:28px;height:28px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:12px;font-weight:800;color:#fff}
-.brand h1{font-family:var(--display);font-size:13px;font-weight:700;color:#fff}
-.brand p{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px}
-.tabs{display:flex;padding:0 12px;flex:1}
-.tab{padding:0 16px;height:56px;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;transition:.2s;white-space:nowrap}
-.tab:hover{color:rgba(255,255,255,.8)}
-.tab.active{color:#fff;border-bottom-color:var(--blue)}
-.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.date-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:11px;padding:5px 12px;border-radius:6px}
-.live-badge{background:rgba(11,122,92,.2);border:1px solid rgba(11,122,92,.4);color:#4ECBA8;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;display:flex;align-items:center;gap:5px}
-.dot{width:6px;height:6px;border-radius:50%;background:#4ECBA8;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.page{display:none;padding:24px 28px;max-width:1440px;margin:0 auto}
-.page.active{display:block}
-.status{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:9px 16px;margin-bottom:18px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-.ok{color:var(--green);font-weight:600}
-.section-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-.sc-row{display:grid;gap:10px;margin-bottom:16px}
-.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g6{grid-template-columns:repeat(6,1fr)}
-.sc{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.sc.b::before{background:var(--blue)}.sc.r::before{background:var(--red)}.sc.g::before{background:var(--green)}.sc.o::before{background:var(--orange)}
-.sc-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
-.sc-val{font-family:var(--display);font-size:28px;font-weight:700;line-height:1;margin-bottom:5px;letter-spacing:-1px}
-.sc-val.r{color:var(--red)}.sc-val.g{color:var(--green)}.sc-val.o{color:var(--orange)}.sc-val.b{color:var(--blue)}
-.chg{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
-.chg.up{background:var(--grnlt);color:var(--green)}.chg.dn{background:var(--redlt);color:var(--red)}.chg.fl{background:#F0F2F7;color:var(--muted)}
-.sc-sub{font-size:9px;color:var(--muted);margin-top:4px}
-.chart-row{display:grid;gap:10px;margin-bottom:16px}
-.g21{grid-template-columns:2fr 1fr}.g11{grid-template-columns:1fr 1fr}.g111{grid-template-columns:1fr 1fr 1fr}
-.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
-.card-title{font-family:var(--display);font-size:12px;font-weight:700;margin-bottom:3px}
-.card-sub{font-size:9px;color:var(--muted);margin-bottom:12px}
-.tbl{width:100%;border-collapse:collapse;font-size:10px}
-.tbl th{background:#0A0E1A;color:#fff;padding:7px 10px;text-align:center;font-weight:600;font-size:9px;letter-spacing:.5px;text-transform:uppercase}
-.tbl th:first-child{text-align:left}
-.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:center}
-.tbl td:first-child{text-align:left;font-weight:600}
-.tbl tr:nth-child(even) td{background:#FAFBFD}
-.up-c{color:var(--green);font-weight:700;background:var(--grnlt)!important}
-.dn-c{color:var(--red);font-weight:700;background:var(--redlt)!important}
-.or-c{color:var(--orange);font-weight:700;background:var(--orglt)!important}
-.bs-c{color:var(--muted);font-style:italic}
-.bar-wrap{display:flex;flex-direction:column;gap:7px}
-.bar-row{display:flex;align-items:center;gap:8px}
-.bar-lbl{font-size:9px;color:var(--muted);width:90px;flex-shrink:0;text-align:right}
-.bar-track{flex:1;background:#F0F2F7;border-radius:3px;height:20px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:700;color:#fff;min-width:16px}
-.bar-val{font-size:10px;font-weight:700;width:45px;flex-shrink:0;text-align:right}
-.alert-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.alert{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;gap:10px;align-items:flex-start}
-.alert.r{background:var(--redlt);border-color:#F5B7BB}
-.alert.g{background:var(--grnlt);border-color:#A8DECE}
-.alert.o{background:var(--orglt);border-color:#F5CFA0}
-.alert-ico{font-size:18px;flex-shrink:0;margin-top:2px}
-.alert-ttl{font-size:11px;font-weight:700;margin-bottom:3px}
-.alert.r .alert-ttl{color:var(--red)}.alert.g .alert-ttl{color:var(--green)}.alert.o .alert-ttl{color:var(--orange)}
-.alert-body{font-size:10px;color:#444;line-height:1.5}
-.alert-metric{font-family:var(--display);font-size:22px;font-weight:700;margin-left:auto;flex-shrink:0}
-.alert.r .alert-metric{color:var(--red)}.alert.g .alert-metric{color:var(--green)}.alert.o .alert-metric{color:var(--orange)}
-.funnel{display:flex;flex-direction:column;gap:5px}
-.f-step{display:flex;align-items:center;gap:8px}
-.f-name{font-size:9px;color:var(--muted);width:155px;flex-shrink:0;text-align:right}
-.f-outer{flex:1;background:#F0F2F7;border-radius:3px;height:22px}
-.f-inner{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:7px;font-size:9px;font-weight:700;color:#fff;min-width:16px}
-.f-count{font-size:10px;font-weight:700;width:50px;flex-shrink:0;text-align:right}
-.f-drop{font-size:9px;width:50px;flex-shrink:0;padding-left:4px;color:var(--red)}
-.prog-item{margin-bottom:10px}
-.prog-hdr{display:flex;justify-content:space-between;margin-bottom:3px}
-.prog-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.prog-val{font-size:10px;font-weight:700}
-.prog-track{background:#F0F2F7;border-radius:3px;height:7px}
-.prog-fill{height:7px;border-radius:3px;transition:width 1s ease}
-.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700}
-@media(max-width:768px){.g4,.g6{grid-template-columns:repeat(2,1fr)}.g21,.g11,.g111{grid-template-columns:1fr}.alert-grid{grid-template-columns:1fr}.tabs{overflow-x:auto}.page{padding:14px}}
+
+/* Header */
+.header {
+  background: #0D1117;
+  color: white;
+  padding: 24px 40px;
+  border-bottom: 4px solid #1A56A0;
+}
+.header h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.header .subtitle { font-size: 13px; opacity: 0.7; }
+.header-meta { display: flex; gap: 24px; margin-top: 12px; font-size: 12px; opacity: 0.8; }
+.header-meta span { display: flex; align-items: center; gap: 6px; }
+
+/* Tabs */
+.tabs {
+  background: white;
+  border-bottom: 1px solid #E2E6EE;
+  padding: 0 40px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+.tab {
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.tab:hover { color: #1A56A0; }
+.tab.active { color: #1A56A0; border-bottom-color: #1A56A0; }
+
+/* Filters */
+.filters {
+  background: white;
+  padding: 16px 40px;
+  border-bottom: 1px solid #E2E6EE;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filters label { font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; }
+.filters select, .filters input {
+  padding: 8px 12px;
+  border: 1px solid #E2E6EE;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+.filters select:focus, .filters input:focus { outline: none; border-color: #1A56A0; }
+.view-toggle { display: flex; background: #F4F6FA; border-radius: 8px; padding: 4px; }
+.view-toggle button {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.view-toggle button.active { background: #1A56A0; color: white; }
+
+/* Content */
+.content { padding: 24px 40px; }
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid #E2E6EE;
+  position: relative;
+}
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.info-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #F4F6FA;
+  color: #6B7280;
+  border: none;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-family: serif;
+  transition: all 0.2s;
+}
+.info-btn:hover { background: #1A56A0; color: white; }
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A2E;
+  margin-bottom: 6px;
+}
+.kpi-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.kpi-change.up { background: #E9F7EF; color: #0A7C59; }
+.kpi-change.down { background: #FDEDEC; color: #C0392B; }
+.kpi-change.flat { background: #F4F6FA; color: #6B7280; }
+.kpi-context { font-size: 11px; color: #6B7280; margin-top: 8px; }
+
+/* Section */
+.section {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  border: 1px solid #E2E6EE;
+  margin-bottom: 24px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0D1117;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::before { content: ""; width: 3px; height: 16px; background: #1A56A0; border-radius: 2px; }
+
+/* Chart */
+.chart-container { height: 320px; position: relative; }
+
+/* Tables */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+  background: #0D1117;
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #E2E6EE;
+}
+.data-table tbody tr:hover { background: #F4F6FA; }
+.data-table .metric-name { font-weight: 600; }
+.data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table .good { background: #E9F7EF; color: #0A7C59; font-weight: 600; }
+.data-table .bad { background: #FDEDEC; color: #C0392B; font-weight: 600; }
+.data-table .warn { background: #FEF9E7; color: #CA6F1E; font-weight: 600; }
+
+/* Alert cards */
+.alert-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 4px solid;
+}
+.alert-card.critical { background: #FDEDEC; border-color: #C0392B; }
+.alert-card.warning { background: #FEF9E7; border-color: #CA6F1E; }
+.alert-card.healthy { background: #E9F7EF; border-color: #0A7C59; }
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+.alert-content { flex: 1; }
+.alert-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.alert-meta { display: flex; gap: 16px; font-size: 12px; margin: 6px 0; }
+.alert-meta strong { color: #1A1A2E; }
+.alert-action { font-size: 12px; font-style: italic; opacity: 0.85; }
+
+/* Recommendations */
+.rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.rec-card {
+  background: white;
+  border: 1px solid #E2E6EE;
+  border-radius: 10px;
+  padding: 18px;
+  border-top: 4px solid #1A56A0;
+}
+.rec-priority {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.rec-priority.p0 { background: #FDEDEC; color: #C0392B; }
+.rec-priority.p1 { background: #FEF9E7; color: #CA6F1E; }
+.rec-priority.p2 { background: #E6F0FA; color: #1A56A0; }
+.rec-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.rec-desc { font-size: 12px; color: #4B5563; line-height: 1.6; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(13, 17, 23, 0.6);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 540px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #F4F6FA;
+}
+.modal-title { font-size: 18px; font-weight: 700; color: #0D1117; }
+.modal-close {
+  background: #F4F6FA;
+  border: none;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6B7280;
+}
+.modal-close:hover { background: #E2E6EE; }
+.modal-section { margin-bottom: 14px; }
+.modal-section h4 { font-size: 11px; font-weight: 700; color: #1A56A0; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
+.modal-section p { font-size: 13px; color: #1A1A2E; line-height: 1.6; }
+.modal-formula {
+  background: #F4F6FA;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  color: #1A56A0;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 20px; }
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #E2E6EE;
+  border-top-color: #1A56A0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-box { background: #FDEDEC; color: #C0392B; padding: 16px; border-radius: 8px; }
+
+/* Footer */
+.footer { padding: 24px 40px; text-align: center; font-size: 11px; color: #6B7280; }
+
+@media (max-width: 768px) {
+  .header, .tabs, .filters, .content, .footer { padding-left: 20px; padding-right: 20px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
-<nav class="nav">
-  <div class="nav-brand">
-    <div class="logo">EU</div>
-    <div class="brand"><h1>Eros Universe</h1><p>Weekly Dashboard</p></div>
-  </div>
-  <div class="tabs">
-    <div class="tab active" onclick="show('health',this)">📊 Health Score</div>
-    <div class="tab" onclick="show('overview',this)">📅 Weekly Overview</div>
-    <div class="tab" onclick="show('bugs',this)">🔴 Bug Tracker</div>
-    <div class="tab" onclick="show('funnel',this)">🔽 Funnel Health</div>
-    <div class="tab" onclick="show('alerts',this)">⚡ Alerts</div>
-  </div>
-  <div class="nav-right">
-    <div class="date-badge" id="nav-date">—</div>
-    <div class="live-badge"><div class="dot"></div>Auto Mon 8AM</div>
-  </div>
-</nav>
 
-<!-- PAGE 1: HEALTH SCORE -->
-<div class="page active" id="page-health">
-  <div class="status"><span class="ok" id="status-msg">✅ Data loaded from Google Sheets · W1 Mar 23 – W7 May 4+</span><span id="updated-at">—</span></div>
-  <div class="section-label">Latest Week vs Previous Week</div>
-  <div class="sc-row g4">
-    <div class="sc b"><div class="sc-lbl">Total Users</div><div class="sc-val b" id="h-users">—</div><span class="chg fl" id="h-users-c">—</span></div>
-    <div class="sc b"><div class="sc-lbl">New Users</div><div class="sc-val b" id="h-new">—</div><span class="chg fl" id="h-new-c">—</span></div>
-    <div class="sc b"><div class="sc-lbl">Sessions</div><div class="sc-val b" id="h-sess">—</div><span class="chg fl" id="h-sess-c">—</span></div>
-    <div class="sc b"><div class="sc-lbl">Returning Users</div><div class="sc-val b" id="h-ret">—</div><span class="chg fl" id="h-ret-c">—</span></div>
-  </div>
-  <div class="sc-row g4">
-    <div class="sc o"><div class="sc-lbl">DAU / MAU</div><div class="sc-val o" id="h-dau">—</div><div class="sc-sub">Target: 0.10+</div></div>
-    <div class="sc g"><div class="sc-lbl">Engagement Rate</div><div class="sc-val g" id="h-eng">—</div><div class="sc-sub">Target: 75%+</div></div>
-    <div class="sc r"><div class="sc-lbl">App Installs</div><div class="sc-val" id="h-inst">—</div><span class="chg fl" id="h-inst-c">—</span></div>
-    <div class="sc r"><div class="sc-lbl">App Uninstalls</div><div class="sc-val r" id="h-rem">—</div><div class="sc-sub" id="h-ur">Rate: —</div></div>
-  </div>
-  <div class="chart-row g21">
-    <div class="card">
-      <div class="card-title">Sessions by Week — W1 to W7</div>
-      <div class="card-sub">Campaign spike visible on W2 (Mar 30-Apr 5) — $100 PubScale spend</div>
-      <div id="sess-chart"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Platform Split</div>
-      <div class="card-sub">Sessions by platform this week</div>
-      <div class="bar-wrap" style="margin-top:8px">
-        <div class="bar-row"><div class="bar-lbl">Android</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--blue)">72%</div></div><div class="bar-val" style="color:var(--blue)">72%</div></div>
-        <div class="bar-row"><div class="bar-lbl">Web</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--green)">22%</div></div><div class="bar-val" style="color:var(--green)">22%</div></div>
-        <div class="bar-row"><div class="bar-lbl">iOS</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--orange)">6%</div></div><div class="bar-val" style="color:var(--orange)">6%</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="chart-row g11">
-    <div class="card">
-      <div class="card-title">Weekly Installs vs Uninstalls</div>
-      <div class="card-sub">Blue = installs · Red = uninstalls</div>
-      <div class="bar-wrap" id="inst-chart"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Uninstall Rate % by Week</div>
-      <div class="card-sub">Target: below 50%</div>
-      <div class="bar-wrap" id="ur-chart"></div>
-    </div>
+<div class="header">
+  <h1>📊 Eros Universe — Analytics Dashboard</h1>
+  <div class="subtitle">Live data from GA4 Property 501624958 · Immerso Innovation Venture Pvt Ltd</div>
+  <div class="header-meta">
+    <span>🟢 <span id="last-updated">Loading...</span></span>
+    <span>📈 <span id="data-range">—</span></span>
+    <span>🔄 Auto-refresh every 5 min</span>
   </div>
 </div>
 
-<!-- PAGE 2: WEEKLY OVERVIEW -->
-<div class="page" id="page-overview">
-  <div class="section-label">All 7 Weeks — Raw Numbers</div>
-  <div class="card" style="margin-bottom:14px;overflow-x:auto">
-    <div class="card-title" style="margin-bottom:10px">Week-on-Week User Metrics</div>
-    <table class="tbl" id="ov-tbl"></table>
-  </div>
-  <div class="section-label">Week-on-Week Change %</div>
-  <div class="card" style="overflow-x:auto">
-    <table class="tbl" id="wow-tbl"></table>
-  </div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
+  <div class="tab" onclick="switchTab('bugs')">🔴 Bug Tracker</div>
+  <div class="tab" onclick="switchTab('funnel')">🔽 Funnel Health</div>
+  <div class="tab" onclick="switchTab('alerts')">⚡ Alerts</div>
+  <div class="tab" onclick="switchTab('recommendations')">💡 Recommendations</div>
 </div>
 
-<!-- PAGE 3: BUG TRACKER -->
-<div class="page" id="page-bugs">
-  <div class="section-label">3 Critical Bugs — Rate Must Improve Each Week</div>
-  <div class="sc-row g3">
-    <div class="sc r"><div class="sc-lbl">Payment Success Rate</div><div class="sc-val r" id="b-pay">—</div><div class="sc-sub">Target: 50%+ | Currently BROKEN</div></div>
-    <div class="sc r"><div class="sc-lbl">Login Success Rate</div><div class="sc-val r" id="b-login">—</div><div class="sc-sub">Target: 80%+ | SSO needed</div></div>
-    <div class="sc r"><div class="sc-lbl">AI Generation Rate</div><div class="sc-val r" id="b-gen">—</div><div class="sc-sub">Target: 85%+ | Outage Apr 13+</div></div>
+<div class="filters">
+  <label>VIEW:</label>
+  <div class="view-toggle">
+    <button class="active" id="view-weekly" onclick="setView('weekly')">📅 Weekly</button>
+    <button id="view-daily" onclick="setView('daily')">📆 Daily</button>
   </div>
-  <div class="card" style="margin-bottom:14px;overflow-x:auto">
-    <div class="card-title" style="margin-bottom:10px">Bug Rates by Week</div>
-    <table class="tbl" id="bug-tbl"></table>
-  </div>
-  <div class="card" style="overflow-x:auto">
-    <div class="card-title" style="margin-bottom:10px">Raw Event Counts by Week</div>
-    <table class="tbl" id="bug-counts-tbl"></table>
-  </div>
+
+  <label>RANGE:</label>
+  <input type="date" id="date-from" />
+  <span style="color: #6B7280;">to</span>
+  <input type="date" id="date-to" />
+
+  <button onclick="applyFilters()" style="background: #1A56A0; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Apply</button>
+  <button onclick="resetFilters()" style="background: #F4F6FA; color: #6B7280; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Reset</button>
 </div>
 
-<!-- PAGE 4: FUNNEL -->
-<div class="page" id="page-funnel">
-  <div class="chart-row g11">
-    <div class="card">
-      <div class="card-title">Sign-up Funnel — 7 Week Totals</div>
-      <div class="card-sub">From session start to subscription</div>
-      <div class="funnel" id="funnel" style="margin-top:10px"></div>
+<div class="content">
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <div style="color: #6B7280; font-size: 13px;">Loading data from Google Sheets...</div>
+  </div>
+  <div id="dashboard" style="display:none;"></div>
+</div>
+
+<div class="footer">
+  Built for Immerso Innovation Venture Pvt Ltd · Data refreshes from Google Sheet · Last sync: <span id="footer-time">—</span>
+</div>
+
+<!-- KPI Definition Modal -->
+<div class="modal-overlay" id="kpi-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">KPI Definition</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
-    <div class="card">
-      <div class="card-title">Key Conversion Rates</div>
-      <div class="card-sub">Current vs target</div>
-      <div id="conv-bars" style="margin-top:8px"></div>
-    </div>
-  </div>
-  <div class="card" style="overflow-x:auto">
-    <div class="card-title" style="margin-bottom:10px">Funnel Metrics by Week</div>
-    <table class="tbl" id="funnel-tbl"></table>
-  </div>
-</div>
-
-<!-- PAGE 5: ALERTS -->
-<div class="page" id="page-alerts">
-  <div class="section-label" id="alert-week">🔴 Critical Alerts</div>
-  <div class="alert-grid" id="red-alerts"></div>
-  <div class="section-label">🟠 Monitor Closely</div>
-  <div class="alert-grid" id="orange-alerts"></div>
-  <div class="section-label">🟢 Performing Well</div>
-  <div class="alert-grid" id="green-alerts"></div>
-  <div class="section-label" style="margin-top:16px">Action Plan</div>
-  <div class="card" style="overflow-x:auto">
-    <table class="tbl" id="action-tbl"></table>
+    <div id="modal-body"></div>
   </div>
 </div>
 
 <script>
-const WEEKS=["W1 Mar 23-29","W2 Mar 30-Apr 5","W3 Apr 6-12","W4 Apr 13-19","W5 Apr 20-26","W6 Apr 27-May 3","W7 May 4+"];
-const SHEET_ID="1XSQr2fW-E1kissK8dJz1RA21StG3cIq2EC6V8XfTN5I";
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+const SHEET_ID = "11EXoXquCuBR6gUq8ZR5OOsKJZ17A4xNXFgmxx3oIwVc";
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
-// Seed data from our analysis
-const D={
-  ov:{
-    "Total Users":         [1130,5703,1587,972,816,732,285],
-    "New Users":           [348,4525,653,267,224,202,136],
-    "Returning Users":     [782,1178,934,705,592,530,149],
-    "Sessions":            [2371,6770,3216,2017,1716,1531,470],
-    "Engagement Rate %":   ["590.9","507.7","548.3","515.7","536.6","506.4","65.1"],
-    "DAU / MAU %":         ["51.2","103.6","21.9","12.9","11.2","16.4","11.9"],
-    "App Installs":        [161,4295,325,125,139,93,42],
-    "App Removes":         [157,4093,366,148,140,98,40],
+let allData = [];
+let filteredData = [];
+let currentView = "weekly";
+let currentTab = "overview";
+let chartInstances = {};
+
+// ═══════════════════════════════════════════════════════════════
+// KPI DEFINITIONS
+// ═══════════════════════════════════════════════════════════════
+const KPI_DEFS = {
+  active_users: {
+    title: "Active Users",
+    definition: "Number of unique users who opened the app and had at least one engaged session in the period.",
+    formula: "Users with engagement_time_msec > 1 second",
+    why_matters: "The single most important top-of-funnel metric. Without users, nothing else matters. Growth here means acquisition is working.",
+    benchmark: "Compare WoW. Target: positive growth every week."
   },
-  bugs:{
-    "Payment Success %":   ["0.0","14.3","0.0","50.0","0.0","0.0","0.0"],
-    "Login Success %":     ["55.1","62.3","64.8","63.2","61.9","60.4","58.7"],
-    "AI Generation %":     ["89.2","90.0","91.2","0.0","0.0","0.0","0.0"],
+  new_users: {
+    title: "New Users",
+    definition: "First-time users who installed and opened the app for the first time in the period.",
+    formula: "Count of first_open events",
+    why_matters: "Indicates marketing/acquisition effectiveness. High new users + low retention = leaky bucket problem.",
+    benchmark: "Should grow with marketing spend. If flat with spend, channels are tapped out."
   },
-  counts:{
-    "Subscription Purchased":[0,1,0,1,0,0,0],
-    "Payment Failed":        [0,6,8,1,4,3,2],
-    "Signin Completed":      [287,629,438,314,278,241,89],
-    "Signin Failed":         [234,380,238,183,171,158,64],
-    "Generation Started":    [765,1232,822,703,526,391,140],
-    "Generation Completed":  [682,1109,750,0,0,0,0],
-    "Generation Failed":     [83,123,72,703,526,391,140],
+  sessions: {
+    title: "Sessions",
+    definition: "Total number of times users opened the app during the period. Multiple sessions per user is normal.",
+    formula: "Count of session_start events",
+    why_matters: "Engagement depth indicator. High sessions per user = sticky product. Low = users not coming back.",
+    benchmark: "Industry avg: 3-5 sessions per user per week. 1.5+ for new apps."
   },
-  funnel:{
-    "Session Start":         [2371,6770,3216,2017,1716,1531,470],
-    "Signup Started":        [89,168,74,51,44,38,27],
-    "Account Created":       [33,62,28,19,16,14,10],
-    "Email Verified":        [25,47,21,14,12,11,6],
-    "Onboarding Completed":  [82,155,68,47,40,35,28],
-    "Content Opened":        [876,2847,1089,697,556,472,173],
-    "Content Completed":     [471,1528,585,374,299,254,93],
-    "Content Liked":         [273,891,340,218,174,148,54],
-    "Content Shared":        [155,505,192,123,98,84,31],
-    "Signup Conv %":         ["37.1","36.9","37.8","37.3","36.4","36.8","37.0"],
-    "Content Reach %":       ["36.9","42.1","33.9","34.6","32.4","30.8","36.8"],
-    "Completion %":          ["53.8","53.7","53.7","53.7","53.8","53.8","53.8"],
-    "Share Rate %":          ["17.7","17.8","17.6","17.7","17.8","17.7","17.6"],
-    "Uninstall Rate %":      ["97.5","95.3","112.6","118.4","100.7","105.4","95.2"],
+  engagement_rate: {
+    title: "Engagement Rate",
+    definition: "Percentage of sessions where the user spent at least 10 seconds OR triggered a key event OR viewed multiple screens.",
+    formula: "(Engaged Sessions ÷ Total Sessions) × 100",
+    why_matters: "High engagement = users finding value. Low = bouncing without doing anything.",
+    benchmark: "Industry: 50-60% is good, 70%+ is exceptional."
+  },
+  dau_mau: {
+    title: "DAU / MAU Ratio",
+    definition: "Daily Active Users divided by Monthly Active Users — measures how often users return.",
+    formula: "(Daily Active Users ÷ Monthly Active Users) × 100",
+    why_matters: "The stickiness metric. 20%+ = users return ~6 days/month. The gold standard for retention.",
+    benchmark: "Facebook: 50%+. Most apps: 10-20% is healthy. <5% = severe churn."
+  },
+  installs: {
+    title: "App Installs (first_open)",
+    definition: "Number of new device installs detected by Firebase. Counts unique device + first launch.",
+    formula: "Count of first_open events from Firebase",
+    why_matters: "Top-of-funnel volume. Without installs, no users.",
+    benchmark: "Track CPI (Cost Per Install). Industry: $2-5 for entertainment apps."
+  },
+  uninstalls: {
+    title: "App Uninstalls (app_remove)",
+    definition: "Number of users who uninstalled the app, captured by Firebase.",
+    formula: "Count of app_remove events",
+    why_matters: "Critical retention signal. High uninstall rate = product not delivering value.",
+    benchmark: "Should be <50% of installs. >80% = critical product issues."
+  },
+  uninstall_rate: {
+    title: "Uninstall Rate %",
+    definition: "Percentage of new installs that resulted in an uninstall in the same period.",
+    formula: "(App Removes ÷ App Installs) × 100",
+    why_matters: "Best churn indicator. <50% healthy, 50-80% concerning, >80% critical.",
+    benchmark: "Top-tier apps: <30%. Industry avg: 40-60%."
+  },
+  payment_rate: {
+    title: "Payment Success Rate",
+    definition: "Percentage of attempted purchases that successfully completed.",
+    formula: "(Subscription Purchased ÷ (Purchased + Failed)) × 100",
+    why_matters: "Revenue-blocking metric. If payment is broken, no revenue regardless of demand.",
+    benchmark: "Healthy: 95%+. Below 50% = gateway likely broken."
+  },
+  login_rate: {
+    title: "Login Success Rate",
+    definition: "Percentage of signin attempts that succeeded.",
+    formula: "(Signin Completed ÷ (Completed + Failed)) × 100",
+    why_matters: "First friction point in user journey. Failed logins = lost users immediately.",
+    benchmark: "Healthy: 90%+. Below 80% = auth UX issues."
+  },
+  generation_rate: {
+    title: "AI Generation Success Rate",
+    definition: "Percentage of started AI generations that completed successfully.",
+    formula: "(Generation Completed ÷ Generation Started) × 100",
+    why_matters: "Core product metric for AI features. If generation fails, the product fails.",
+    benchmark: "Should be 90%+. Below 50% = backend/model outage."
+  },
+  signup_conv: {
+    title: "Signup → Account Conversion %",
+    definition: "Of users who started signup, what % completed creating an account.",
+    formula: "(Account Created ÷ Signup Started) × 100",
+    why_matters: "First conversion gate. Drop-off here = signup form too long, OTP failing, etc.",
+    benchmark: "60%+ healthy. Below 40% = signup UX issues."
+  },
+  content_reach: {
+    title: "Content Reach %",
+    definition: "Of all sessions, what % included opening at least one piece of content.",
+    formula: "(Content Opened ÷ Session Start) × 100",
+    why_matters: "Are users finding content? Low = home screen / discovery problem.",
+    benchmark: "50%+ healthy. <30% = home screen needs redesign."
+  },
+  completion_rate: {
+    title: "Content Completion Rate %",
+    definition: "Of opened content, what % was watched/read to completion.",
+    formula: "(Content View Completed ÷ Content Opened) × 100",
+    why_matters: "Content quality signal. Low = wrong content, bad recommendations, or quality issues.",
+    benchmark: "50%+ for short-form. 30%+ for long-form. <20% = content mismatch."
+  },
+  share_rate: {
+    title: "Share Rate %",
+    definition: "Of opened content, what % was organically shared by users.",
+    formula: "(Content Shared ÷ Content Opened) × 100",
+    why_matters: "Viral coefficient indicator. High = users love it enough to share. Free distribution.",
+    benchmark: "Industry: 3-5%. 15%+ = viral product. Eros: tracking 15-30% historically (strong)."
   }
 };
 
-function show(page,tab){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  if(tab) tab.classList.add('active');
+// ═══════════════════════════════════════════════════════════════
+// LOAD DATA FROM GOOGLE SHEET
+// ═══════════════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    const response = await fetch(SHEET_URL);
+    if (!response.ok) throw new Error("Could not fetch sheet — make sure it is publicly viewable");
+    const csv = await response.text();
+
+    const parsed = Papa.parse(csv, { header: true, dynamicTyping: true, skipEmptyLines: true });
+    allData = parsed.data
+      .filter(r => r.Date && r.Date !== "")
+      .map(r => ({
+        date: r.Date,
+        users: r["Active Users"] || 0,
+        newUsers: r["New Users"] || 0,
+        sessions: r.Sessions || 0,
+        engRate: r["Engagement Rate %"] || 0,
+        dauMau: r["DAU/MAU %"] || 0,
+        sessionStart: r.session_start || 0,
+        firstOpen: r.first_open || 0,
+        appRemove: r.app_remove || 0,
+        signupStarted: r.signup_started || 0,
+        accountCreated: r.account_created || 0,
+        onboardingCompleted: r.onboarding_completed || 0,
+        signinCompleted: r.signin_completed || 0,
+        signinFailed: r.signin_failed || 0,
+        contentOpened: r.content_opened || 0,
+        contentViewCompleted: r.content_view_completed || 0,
+        contentLiked: r.content_liked || 0,
+        contentShared: r.content_shared || 0,
+        generationStarted: r.generation_started || 0,
+        generationCompleted: r.generation_completed || 0,
+        generationFailed: r.generation_failed || 0,
+        subscriptionPageViewed: r.subscription_page_viewed || 0,
+        subscriptionPlanSelected: r.subscription_plan_selected || 0,
+        subscriptionPurchased: r.subscription_purchased || 0,
+        paymentFailed: r.payment_failed || 0,
+      }))
+      .filter(r => r.users > 0 || r.firstOpen > 0)
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    if (allData.length === 0) throw new Error("No data found in sheet");
+
+    document.getElementById("data-range").textContent = `${allData[0].date} to ${allData[allData.length-1].date}`;
+    document.getElementById("last-updated").textContent = `Updated ${new Date().toLocaleTimeString("en-IN", {hour: "numeric", minute: "2-digit"})}`;
+    document.getElementById("footer-time").textContent = new Date().toLocaleString("en-IN");
+
+    // Set default date range
+    document.getElementById("date-from").value = allData[0].date;
+    document.getElementById("date-to").value = allData[allData.length-1].date;
+    document.getElementById("date-from").min = allData[0].date;
+    document.getElementById("date-from").max = allData[allData.length-1].date;
+    document.getElementById("date-to").min = allData[0].date;
+    document.getElementById("date-to").max = allData[allData.length-1].date;
+
+    filteredData = [...allData];
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    renderDashboard();
+  } catch (err) {
+    document.getElementById("loading").innerHTML = `<div class="error-box"><strong>⚠️ Error:</strong> ${err.message}<br><br>Make sure the Google Sheet is set to <strong>"Anyone with the link → Viewer"</strong> in Share settings.</div>`;
+    console.error(err);
+  }
 }
 
-function f(n){return typeof n==='string'?n:Number(n).toLocaleString()}
-function ar(c,p,hb=true){
-  c=parseFloat(c)||0;p=parseFloat(p)||0;
-  if(!p) return{t:'—',cls:'bs-c'};
-  const d=((c-p)/p*100).toFixed(1);
-  const up=c>p,good=hb?up:!up;
-  return{t:(up?'▲ +':'▼ ')+d+'%',cls:good?'up-c':'dn-c'};
+// ═══════════════════════════════════════════════════════════════
+// AGGREGATE DATA — group days into weeks if weekly view
+// ═══════════════════════════════════════════════════════════════
+function aggregate(data, view) {
+  if (view === "daily") return data.map(d => ({...d, label: d.date}));
+
+  // Weekly: group by ISO week starting Monday
+  const weeks = {};
+  data.forEach(d => {
+    const dt = new Date(d.date);
+    const day = dt.getDay() || 7; // Sunday = 7 instead of 0
+    const monday = new Date(dt);
+    monday.setDate(dt.getDate() - day + 1);
+    const weekKey = monday.toISOString().substring(0, 10);
+
+    if (!weeks[weekKey]) {
+      weeks[weekKey] = {
+        date: weekKey,
+        label: `Week of ${weekKey}`,
+        users: 0, newUsers: 0, sessions: 0,
+        engRateSum: 0, engRateCount: 0,
+        dauMauSum: 0, dauMauCount: 0,
+        sessionStart: 0, firstOpen: 0, appRemove: 0,
+        signupStarted: 0, accountCreated: 0, onboardingCompleted: 0,
+        signinCompleted: 0, signinFailed: 0,
+        contentOpened: 0, contentViewCompleted: 0, contentLiked: 0, contentShared: 0,
+        generationStarted: 0, generationCompleted: 0, generationFailed: 0,
+        subscriptionPageViewed: 0, subscriptionPlanSelected: 0, subscriptionPurchased: 0, paymentFailed: 0,
+      };
+    }
+    const w = weeks[weekKey];
+    w.users += d.users;
+    w.newUsers += d.newUsers;
+    w.sessions += d.sessions;
+    if (d.engRate > 0) { w.engRateSum += d.engRate; w.engRateCount++; }
+    if (d.dauMau > 0) { w.dauMauSum += d.dauMau; w.dauMauCount++; }
+    w.sessionStart += d.sessionStart;
+    w.firstOpen += d.firstOpen;
+    w.appRemove += d.appRemove;
+    w.signupStarted += d.signupStarted;
+    w.accountCreated += d.accountCreated;
+    w.onboardingCompleted += d.onboardingCompleted;
+    w.signinCompleted += d.signinCompleted;
+    w.signinFailed += d.signinFailed;
+    w.contentOpened += d.contentOpened;
+    w.contentViewCompleted += d.contentViewCompleted;
+    w.contentLiked += d.contentLiked;
+    w.contentShared += d.contentShared;
+    w.generationStarted += d.generationStarted;
+    w.generationCompleted += d.generationCompleted;
+    w.generationFailed += d.generationFailed;
+    w.subscriptionPageViewed += d.subscriptionPageViewed;
+    w.subscriptionPlanSelected += d.subscriptionPlanSelected;
+    w.subscriptionPurchased += d.subscriptionPurchased;
+    w.paymentFailed += d.paymentFailed;
+  });
+
+  return Object.values(weeks).map(w => ({
+    ...w,
+    engRate: w.engRateCount > 0 ? w.engRateSum / w.engRateCount : 0,
+    dauMau: w.dauMauCount > 0 ? w.dauMauSum / w.dauMauCount : 0,
+  })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// Build generic week table
-function weekTbl(elId,data,hb={}){
-  let h=`<thead><tr><th>Metric</th>${WEEKS.map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
-  Object.entries(data).forEach(([m,vals])=>{
-    const isGood=hb[m]!==false;
-    h+=`<tr><td>${m}</td>`;
-    vals.forEach((v,i)=>{
-      const disp=typeof v==='string'&&v.includes('%')?v:f(v);
-      if(i===0){h+=`<td class="bs-c">${disp}</td>`;}
-      else{
-        const p=parseFloat(vals[i-1])||0,c=parseFloat(v)||0;
-        const good=isGood?c>=p:c<=p;
-        h+=`<td class="${c===p?'':good?'up-c':'dn-c'}">${disp}</td>`;
+// ═══════════════════════════════════════════════════════════════
+// CALCULATE TOTALS & DERIVED METRICS
+// ═══════════════════════════════════════════════════════════════
+function calcTotals(data) {
+  const t = {
+    users: 0, newUsers: 0, sessions: 0,
+    sessionStart: 0, firstOpen: 0, appRemove: 0,
+    signupStarted: 0, accountCreated: 0, signinCompleted: 0, signinFailed: 0,
+    contentOpened: 0, contentViewCompleted: 0, contentLiked: 0, contentShared: 0,
+    generationStarted: 0, generationCompleted: 0, generationFailed: 0,
+    subscriptionPurchased: 0, paymentFailed: 0,
+    engRateAvg: 0, dauMauAvg: 0,
+  };
+  data.forEach(d => {
+    t.users += d.users; t.newUsers += d.newUsers; t.sessions += d.sessions;
+    t.sessionStart += d.sessionStart; t.firstOpen += d.firstOpen; t.appRemove += d.appRemove;
+    t.signupStarted += d.signupStarted; t.accountCreated += d.accountCreated;
+    t.signinCompleted += d.signinCompleted; t.signinFailed += d.signinFailed;
+    t.contentOpened += d.contentOpened; t.contentViewCompleted += d.contentViewCompleted;
+    t.contentLiked += d.contentLiked; t.contentShared += d.contentShared;
+    t.generationStarted += d.generationStarted; t.generationCompleted += d.generationCompleted;
+    t.generationFailed += d.generationFailed;
+    t.subscriptionPurchased += d.subscriptionPurchased; t.paymentFailed += d.paymentFailed;
+  });
+  const validEng = data.filter(d => d.engRate > 0);
+  const validDau = data.filter(d => d.dauMau > 0);
+  t.engRateAvg = validEng.length > 0 ? validEng.reduce((s,d) => s+d.engRate, 0) / validEng.length : 0;
+  t.dauMauAvg = validDau.length > 0 ? validDau.reduce((s,d) => s+d.dauMau, 0) / validDau.length : 0;
+
+  // Derived
+  t.uninstallRate = t.firstOpen > 0 ? (t.appRemove / t.firstOpen * 100) : 0;
+  t.paymentRate = (t.subscriptionPurchased + t.paymentFailed) > 0 ? (t.subscriptionPurchased / (t.subscriptionPurchased + t.paymentFailed) * 100) : 0;
+  t.loginRate = (t.signinCompleted + t.signinFailed) > 0 ? (t.signinCompleted / (t.signinCompleted + t.signinFailed) * 100) : 0;
+  t.generationRate = t.generationStarted > 0 ? (t.generationCompleted / t.generationStarted * 100) : 0;
+  t.signupConv = t.signupStarted > 0 ? (t.accountCreated / t.signupStarted * 100) : 0;
+  t.contentReach = t.sessionStart > 0 ? (t.contentOpened / t.sessionStart * 100) : 0;
+  t.completionRate = t.contentOpened > 0 ? (t.contentViewCompleted / t.contentOpened * 100) : 0;
+  t.shareRate = t.contentOpened > 0 ? (t.contentShared / t.contentOpened * 100) : 0;
+  t.likeRate = t.contentOpened > 0 ? (t.contentLiked / t.contentOpened * 100) : 0;
+  t.returningUsers = t.users - t.newUsers;
+
+  return t;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPUTE WoW CHANGE
+// ═══════════════════════════════════════════════════════════════
+function computeChange(data) {
+  if (data.length < 2) return null;
+  const half = Math.ceil(data.length / 2);
+  const recent = data.slice(half);
+  const prior = data.slice(0, half);
+  const recentTot = calcTotals(recent);
+  const priorTot = calcTotals(prior);
+  const change = {};
+  Object.keys(recentTot).forEach(k => {
+    if (priorTot[k] > 0) change[k] = ((recentTot[k] - priorTot[k]) / priorTot[k] * 100);
+    else change[k] = null;
+  });
+  return change;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FORMAT HELPERS
+// ═══════════════════════════════════════════════════════════════
+const fmt = n => n >= 1000 ? n.toLocaleString("en-IN", {maximumFractionDigits: 0}) : Math.round(n).toString();
+const fmtPct = n => n.toFixed(1) + "%";
+const fmtChange = c => c === null ? null : (c > 0 ? "+" : "") + c.toFixed(1) + "%";
+
+function changeClass(c, higherBetter = true) {
+  if (c === null || Math.abs(c) < 0.5) return "flat";
+  if (higherBetter) return c > 0 ? "up" : "down";
+  return c > 0 ? "down" : "up";
+}
+
+function changeArrow(c, higherBetter = true) {
+  if (c === null || Math.abs(c) < 0.5) return "→";
+  if (higherBetter) return c > 0 ? "↑" : "↓";
+  return c > 0 ? "↑" : "↓";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════════════════
+function setView(v) {
+  currentView = v;
+  document.getElementById("view-weekly").classList.toggle("active", v === "weekly");
+  document.getElementById("view-daily").classList.toggle("active", v === "daily");
+  renderDashboard();
+}
+
+function applyFilters() {
+  const from = document.getElementById("date-from").value;
+  const to = document.getElementById("date-to").value;
+  if (!from || !to) { alert("Please select both dates"); return; }
+  filteredData = allData.filter(d => d.date >= from && d.date <= to);
+  if (filteredData.length === 0) { alert("No data in selected range"); filteredData = [...allData]; return; }
+  renderDashboard();
+}
+
+function resetFilters() {
+  filteredData = [...allData];
+  document.getElementById("date-from").value = allData[0].date;
+  document.getElementById("date-to").value = allData[allData.length-1].date;
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  event.target.classList.add("active");
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════════
+function showKpiInfo(key) {
+  const def = KPI_DEFS[key];
+  if (!def) return;
+  document.getElementById("modal-title").textContent = def.title;
+  document.getElementById("modal-body").innerHTML = `
+    <div class="modal-section">
+      <h4>📖 Definition</h4>
+      <p>${def.definition}</p>
+    </div>
+    <div class="modal-section">
+      <h4>🧮 Formula</h4>
+      <div class="modal-formula">${def.formula}</div>
+    </div>
+    <div class="modal-section">
+      <h4>🎯 Why It Matters</h4>
+      <p>${def.why_matters}</p>
+    </div>
+    <div class="modal-section">
+      <h4>📊 Benchmark</h4>
+      <p>${def.benchmark}</p>
+    </div>
+  `;
+  document.getElementById("kpi-modal").classList.add("active");
+}
+
+function closeModal() {
+  document.getElementById("kpi-modal").classList.remove("active");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard() {
+  // Destroy old charts
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+
+  if (currentTab === "overview") renderOverview();
+  else if (currentTab === "bugs") renderBugs();
+  else if (currentTab === "funnel") renderFunnel();
+  else if (currentTab === "alerts") renderAlerts();
+  else if (currentTab === "recommendations") renderRecommendations();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OVERVIEW TAB
+// ═══════════════════════════════════════════════════════════════
+function renderOverview() {
+  const totals = calcTotals(filteredData);
+  const change = computeChange(filteredData);
+  const aggregated = aggregate(filteredData, currentView);
+
+  document.getElementById("dashboard").innerHTML = `
+    <div class="kpi-grid">
+      ${kpiCard("active_users", "Active Users", fmt(totals.users), change?.users, true)}
+      ${kpiCard("new_users", "New Users", fmt(totals.newUsers), change?.newUsers, true)}
+      ${kpiCard("sessions", "Sessions", fmt(totals.sessions), change?.sessions, true)}
+      ${kpiCard("engagement_rate", "Engagement Rate", fmtPct(totals.engRateAvg), change?.engRateAvg, true)}
+      ${kpiCard("dau_mau", "DAU / MAU", fmtPct(totals.dauMauAvg), change?.dauMauAvg, true)}
+      ${kpiCard("installs", "App Installs", fmt(totals.firstOpen), change?.firstOpen, true)}
+      ${kpiCard("uninstalls", "App Uninstalls", fmt(totals.appRemove), change?.appRemove, false)}
+      ${kpiCard("uninstall_rate", "Uninstall Rate", fmtPct(totals.uninstallRate), null, false)}
+    </div>
+
+    <div class="section">
+      <div class="section-title">📈 ${currentView === 'weekly' ? 'Weekly' : 'Daily'} Trend — Active Users & Sessions</div>
+      <div class="chart-container"><canvas id="trend-chart"></canvas></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📊 Detailed Breakdown</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>${currentView === 'weekly' ? 'Week' : 'Date'}</th>
+            <th class="num">Active Users</th>
+            <th class="num">New Users</th>
+            <th class="num">Sessions</th>
+            <th class="num">Engagement %</th>
+            <th class="num">Installs</th>
+            <th class="num">Uninstalls</th>
+          </tr></thead>
+          <tbody>
+            ${aggregated.map(d => `<tr>
+              <td class="metric-name">${d.label || d.date}</td>
+              <td class="num">${fmt(d.users)}</td>
+              <td class="num">${fmt(d.newUsers)}</td>
+              <td class="num">${fmt(d.sessions)}</td>
+              <td class="num">${fmtPct(d.engRate)}</td>
+              <td class="num">${fmt(d.firstOpen)}</td>
+              <td class="num">${fmt(d.appRemove)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Trend chart
+  setTimeout(() => {
+    const ctx = document.getElementById("trend-chart");
+    if (!ctx) return;
+    chartInstances.trend = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: aggregated.map(d => currentView === 'daily' ? d.date.substring(5) : "W " + d.date.substring(5)),
+        datasets: [
+          { label: "Active Users", data: aggregated.map(d => d.users), borderColor: "#1A56A0", backgroundColor: "rgba(26,86,160,0.1)", tension: 0.3, fill: true },
+          { label: "Sessions", data: aggregated.map(d => d.sessions), borderColor: "#0A7C59", backgroundColor: "rgba(10,124,89,0.1)", tension: 0.3, fill: true }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: { legend: { position: "top" } },
+        scales: { y: { beginAtZero: true } }
       }
     });
-    h+=`</tr>`;
-  });
-  document.getElementById(elId).innerHTML=h+'</tbody>';
+  }, 50);
 }
 
-// WoW change table
-function wowTbl(elId,data,hb={}){
-  let h=`<thead><tr><th>Metric</th>${WEEKS.map((w,i)=>`<th>${i===0?'Baseline':'vs Prev'}</th>`).join('')}</tr></thead><tbody>`;
-  Object.entries(data).forEach(([m,vals])=>{
-    const isGood=hb[m]!==false;
-    h+=`<tr><td>${m}</td><td class="bs-c">Baseline</td>`;
-    for(let i=1;i<vals.length;i++){const a=ar(vals[i],vals[i-1],isGood);h+=`<td class="${a.cls}">${a.t}</td>`;}
-    h+=`</tr>`;
-  });
-  document.getElementById(elId).innerHTML=h+'</tbody>';
-}
-
-// SVG bar chart
-function svgBars(elId,labels,vals,colors,maxV){
-  const el=document.getElementById(elId);
-  const max=maxV||Math.max(...vals.map(v=>parseFloat(v)||0),1);
-  el.innerHTML=labels.map((lbl,i)=>{
-    const v=parseFloat(vals[i])||0;
-    const w=Math.max((v/max)*100,0.5);
-    const disp=typeof vals[i]==='string'&&vals[i].includes('%')?vals[i]:f(v);
-    return `<div class="bar-row">
-      <div class="bar-lbl">${lbl}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${colors[i]||'var(--blue)'}">${v>0&&w>15?disp:''}</div></div>
-      <div class="bar-val" style="color:${colors[i]||'var(--blue)'}">${disp}</div>
-    </div>`;
-  }).join('');
-}
-
-// Sessions SVG line chart
-function sessChart(){
-  const vals=D.ov["Sessions"];
-  const max=Math.max(...vals,1);
-  const W=500,H=110,pad=28;
-  const xs=vals.map((_,i)=>pad+(i/(vals.length-1))*(W-pad*2));
-  const ys=vals.map(v=>H-pad-((v/max)*(H-pad*2)));
-  const area=`M${xs[0]},${ys[0]} `+xs.slice(1).map((x,i)=>`L${x},${ys[i+1]}`).join(' ')+` L${xs[xs.length-1]},${H-pad} L${xs[0]},${H-pad} Z`;
-  const line=`M${xs[0]},${ys[0]} `+xs.slice(1).map((x,i)=>`L${x},${ys[i+1]}`).join(' ');
-  const grids=[0,Math.round(max/2),max].map(v=>{
-    const y=H-pad-((v/max)*(H-pad*2));
-    return `<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="#E4E8F0" stroke-width="1"/>
-    <text x="${pad-3}" y="${y+3}" font-size="7" fill="#8892A4" text-anchor="end">${v>999?(v/1000).toFixed(1)+'k':v}</text>`;
-  }).join('');
-  // Week labels
-  const xlabels=WEEKS.map((w,i)=>`<text x="${xs[i]}" y="${H-4}" font-size="7" fill="#8892A4" text-anchor="middle">${w.split(' ')[0]}</text>`).join('');
-  document.getElementById('sess-chart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">
-    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1847A8" stop-opacity=".12"/><stop offset="100%" stop-color="#1847A8" stop-opacity="0"/></linearGradient></defs>
-    ${grids}
-    <path d="${area}" fill="url(#sg)"/>
-    <path d="${line}" fill="none" stroke="#1847A8" stroke-width="2" stroke-linejoin="round"/>
-    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3" fill="#1847A8"/><title>${WEEKS[i]}: ${f(vals[i])}</title>`).join('')}
-    ${xlabels}
-  </svg>`;
-}
-
-// Funnel
-function buildFunnel(){
-  const steps=[
-    {n:'Session Start',      v:D.funnel['Session Start'].reduce((a,b)=>a+b,0),     c:'#1847A8'},
-    {n:'Signup Started',     v:D.funnel['Signup Started'].reduce((a,b)=>a+b,0),    c:'#7B5EA7'},
-    {n:'Account Created',    v:D.funnel['Account Created'].reduce((a,b)=>a+b,0),   c:'#C46A0F'},
-    {n:'Email Verified',     v:D.funnel['Email Verified'].reduce((a,b)=>a+b,0),    c:'#C46A0F'},
-    {n:'Onboarding Done',    v:D.funnel['Onboarding Completed'].reduce((a,b)=>a+b,0),c:'#0B7A5C'},
-    {n:'Content Opened',     v:D.funnel['Content Opened'].reduce((a,b)=>a+b,0),    c:'#1847A8'},
-    {n:'Subscribed ✓',       v:4,                                                   c:'#D42B3A'},
-  ];
-  const max=steps[0].v;
-  document.getElementById('funnel').innerHTML=steps.map((s,i)=>{
-    const w=Math.max((s.v/max)*100,0.3);
-    const prev=i>0?steps[i-1].v:s.v;
-    const drop=i>0&&prev>0?'–'+((1-s.v/prev)*100).toFixed(1)+'%':'';
-    return `<div class="f-step">
-      <div class="f-name">${s.n}</div>
-      <div class="f-outer"><div class="f-inner" style="width:${w}%;background:${s.c}">${s.v>500?f(s.v):''}</div></div>
-      <div class="f-count" style="color:${s.c}">${f(s.v)}</div>
-      <div class="f-drop">${drop}</div>
-    </div>`;
-  }).join('');
-}
-
-// Conv bars
-function buildConv(){
-  const items=[
-    {l:'Signup→Account',v:37.1,t:60,g:false},
-    {l:'Content Reach %',v:36.8,t:50,g:false},
-    {l:'Content Completion',v:53.7,t:50,g:true},
-    {l:'Share Rate %',v:17.7,t:15,g:true},
-    {l:'Uninstall Rate',v:97.0,t:50,g:false},
-    {l:'Payment Success',v:3.8,t:50,g:false},
-  ];
-  document.getElementById('conv-bars').innerHTML=items.map(m=>{
-    const c=m.g?'var(--green)':'var(--red)';
-    return `<div class="prog-item">
-      <div class="prog-hdr">
-        <span class="prog-lbl">${m.l}</span>
-        <span class="prog-val" style="color:${c}">${m.v}% <span style="color:var(--muted);font-weight:400">/ ${m.t}%</span></span>
+function kpiCard(key, label, value, change, higherBetter = true) {
+  const cls = changeClass(change, higherBetter);
+  const arr = changeArrow(change, higherBetter);
+  return `
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">${label}</div>
+        <button class="info-btn" onclick="showKpiInfo('${key}')" title="What is this?">i</button>
       </div>
-      <div class="prog-track"><div class="prog-fill" style="width:${Math.min(m.v,100)}%;background:${c}"></div></div>
-    </div>`;
-  }).join('');
+      <div class="kpi-value">${value}</div>
+      ${change !== null && change !== undefined ? `<span class="kpi-change ${cls}">${arr} ${fmtChange(change)}</span>` : ''}
+      <div class="kpi-context">${currentView === 'weekly' ? 'Weekly aggregated' : 'Daily total'}</div>
+    </div>
+  `;
 }
 
-// Alerts
-function buildAlerts(){
-  const lw=WEEKS.length-1;
-  const pay=parseFloat(D.bugs["Payment Success %"][lw])||0;
-  const login=parseFloat(D.bugs["Login Success %"][lw])||0;
-  const gen=parseFloat(D.bugs["AI Generation %"][lw])||0;
-  const ur=parseFloat(D.funnel["Uninstall Rate %"][lw])||0;
-  const cr=parseFloat(D.funnel["Content Reach %"][lw])||0;
-  const comp=parseFloat(D.funnel["Completion %"][lw])||0;
-  const sr=parseFloat(D.funnel["Share Rate %"][lw])||0;
+// ═══════════════════════════════════════════════════════════════
+// BUG TRACKER TAB
+// ═══════════════════════════════════════════════════════════════
+function renderBugs() {
+  const totals = calcTotals(filteredData);
+  const aggregated = aggregate(filteredData, currentView);
 
-  document.getElementById('alert-week').textContent='🔴 Critical Alerts — '+WEEKS[lw];
-
-  function ac(icon,title,body,metric,type){
-    return `<div class="alert ${type}"><div class="alert-ico">${icon}</div><div><div class="alert-ttl">${title}</div><div class="alert-body">${body}</div></div><div class="alert-metric">${metric}</div></div>`;
-  }
-
-  let reds='',oranges='',greens='';
-  if(pay<10) reds+=ac('💳','Payment Gateway Broken','96%+ of payment attempts fail. 832 users showed intent to pay but couldn\'t. Engineering P0.',pay.toFixed(1)+'%','r');
-  if(gen<50) reds+=ac('🤖','AI Generation Outage','Zero completions since Apr 13. Users started tasks and got nothing. Silent failure destroying trust.',gen.toFixed(1)+'%','r');
-  if(ur>85)  reds+=ac('📲','Uninstall Rate Critical','97% of installs deleted within 32 days. Day 0 experience not delivering value fast enough.',ur.toFixed(1)+'%','r');
-  if(login<65) reds+=ac('🔐','Login Failure Rate High','38% of login attempts fail. Same users retrying 234x. Add Google/Apple SSO immediately.',login.toFixed(1)+'%','r');
-
-  if(cr<50) oranges+=ac('🎬','Content Reach Below Target',cr.toFixed(1)+'% of sessions reach content. Home screen not surfacing content. Navigation redesign needed.',cr.toFixed(1)+'%','o');
-  if(pay>=10&&pay<50) oranges+=ac('💳','Payment Improving But Below Target','Some improvement visible but still below 50% target. Keep engineering focused.',pay.toFixed(1)+'%','o');
-
-  if(comp>=50) greens+=ac('✅','Content Completion Healthy','53.7% watch content to the end. Industry avg is 35%. Content quality is the product\'s strongest asset.',comp.toFixed(1)+'%','g');
-  if(sr>=15) greens+=ac('📢','Organic Share Rate Strong','17.7% organic share rate — 3-5x above industry benchmark. Viral loop exists and is working.',sr.toFixed(1)+'%','g');
-
-  document.getElementById('red-alerts').innerHTML=reds||'<p style="color:var(--muted);font-size:11px;padding:10px">No critical alerts 🎉</p>';
-  document.getElementById('orange-alerts').innerHTML=oranges||'<p style="color:var(--muted);font-size:11px;padding:10px">No warnings</p>';
-  document.getElementById('green-alerts').innerHTML=greens;
-
-  // Action table
-  const rows=[
-    ['P0','#D42B3A','Payment Gateway','Audit gateway logs · Test all plans on Android/iOS/Web','Engineering','This week'],
-    ['P0','#D42B3A','AI Generation Outage','Root cause analysis · Add real-time error alerting','Engineering','This week'],
-    ['P0','#D42B3A','Login Failures','Add Google/Apple SSO · Fix OTP delivery','Engineering','This week'],
-    ['P1','#C46A0F','Day 0 Onboarding','Show product before signup · Reduce to 1-step registration','Product + Design','3 weeks'],
-    ['P1','#C46A0F','Content Discovery','Move content feed to home screen · Add For You surface','Product + Design','3 weeks'],
-    ['P2','#1847A8','Retention Loop','Push notifications · Daily Drop content hook · AI streak mechanic','Product','Month 2'],
-  ];
-  let t=`<thead><tr><th>Priority</th><th>Issue</th><th>Fix</th><th>Owner</th><th>Timeline</th></tr></thead><tbody>`;
-  rows.forEach(([p,c,issue,fix,owner,time])=>{
-    t+=`<tr><td><span class="pill" style="background:${c}22;color:${c}">${p}</span></td><td style="font-weight:700;color:${c}">${issue}</td><td>${fix}</td><td>${owner}</td><td>${time}</td></tr>`;
+  const bugAgg = aggregated.map(d => {
+    const t = calcTotals([d]);
+    return { ...d, ...t };
   });
-  document.getElementById('action-tbl').innerHTML=t+'</tbody>';
+
+  document.getElementById("dashboard").innerHTML = `
+    <div class="kpi-grid">
+      ${kpiCard("payment_rate", "💳 Payment Success Rate", fmtPct(totals.paymentRate), null, true)}
+      ${kpiCard("login_rate", "🔐 Login Success Rate", fmtPct(totals.loginRate), null, true)}
+      ${kpiCard("generation_rate", "🤖 AI Generation Rate", fmtPct(totals.generationRate), null, true)}
+      ${kpiCard("uninstall_rate", "📉 Uninstall Rate", fmtPct(totals.uninstallRate), null, false)}
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔴 Critical Bug Trends Over Time</div>
+      <div class="chart-container"><canvas id="bug-chart"></canvas></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📋 Bug Status by ${currentView === 'weekly' ? 'Week' : 'Day'}</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>${currentView === 'weekly' ? 'Week' : 'Date'}</th>
+            <th class="num">Payment %</th>
+            <th class="num">Login %</th>
+            <th class="num">AI Gen %</th>
+            <th class="num">Uninstall %</th>
+          </tr></thead>
+          <tbody>
+            ${bugAgg.map(d => `<tr>
+              <td class="metric-name">${d.label || d.date}</td>
+              <td class="num ${d.paymentRate >= 50 ? 'good' : d.paymentRate >= 10 ? 'warn' : 'bad'}">${fmtPct(d.paymentRate)}</td>
+              <td class="num ${d.loginRate >= 80 ? 'good' : d.loginRate >= 60 ? 'warn' : 'bad'}">${fmtPct(d.loginRate)}</td>
+              <td class="num ${d.generationRate >= 85 ? 'good' : d.generationRate >= 50 ? 'warn' : 'bad'}">${fmtPct(d.generationRate)}</td>
+              <td class="num ${d.uninstallRate < 50 ? 'good' : d.uninstallRate < 80 ? 'warn' : 'bad'}">${fmtPct(d.uninstallRate)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const ctx = document.getElementById("bug-chart");
+    if (!ctx) return;
+    chartInstances.bug = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: bugAgg.map(d => currentView === 'daily' ? d.date.substring(5) : "W " + d.date.substring(5)),
+        datasets: [
+          { label: "Payment Rate %", data: bugAgg.map(d => d.paymentRate), borderColor: "#C0392B", tension: 0.3 },
+          { label: "Login Rate %", data: bugAgg.map(d => d.loginRate), borderColor: "#CA6F1E", tension: 0.3 },
+          { label: "AI Generation %", data: bugAgg.map(d => d.generationRate), borderColor: "#1A56A0", tension: 0.3 },
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true, max: 100 } } }
+    });
+  }, 50);
 }
 
-// ── INIT ─────────────────────────────────────────────────────────
-function init(){
-  const now=new Date();
-  document.getElementById('nav-date').textContent='📅 '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-  document.getElementById('updated-at').textContent='Sheet updates every Monday 8 AM IST';
+// ═══════════════════════════════════════════════════════════════
+// FUNNEL TAB
+// ═══════════════════════════════════════════════════════════════
+function renderFunnel() {
+  const totals = calcTotals(filteredData);
 
-  const lw=WEEKS.length-1,pw=WEEKS.length-2;
-  const tw=D.ov,bw=D.bugs;
+  document.getElementById("dashboard").innerHTML = `
+    <div class="kpi-grid">
+      ${kpiCard("signup_conv", "Signup Conversion", fmtPct(totals.signupConv), null, true)}
+      ${kpiCard("content_reach", "Content Reach", fmtPct(totals.contentReach), null, true)}
+      ${kpiCard("completion_rate", "Completion Rate", fmtPct(totals.completionRate), null, true)}
+      ${kpiCard("share_rate", "Share Rate", fmtPct(totals.shareRate), null, true)}
+    </div>
 
-  function setsc(vid,cid,val,prev,hb=true){
-    document.getElementById(vid).textContent=typeof val==='number'?f(val):val;
-    if(cid){const a=ar(val,prev,hb);const el=document.getElementById(cid);el.textContent=a.t;el.className='chg '+(a.cls==='up-c'?'up':a.cls==='dn-c'?'dn':'fl');}
-  }
+    <div class="section">
+      <div class="section-title">🔽 Sign-up Funnel</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Step</th><th class="num">Count</th><th class="num">Conversion</th></tr></thead>
+          <tbody>
+            <tr><td class="metric-name">1. Sessions Started</td><td class="num">${fmt(totals.sessionStart)}</td><td class="num">100%</td></tr>
+            <tr><td class="metric-name">2. Signup Started</td><td class="num">${fmt(totals.signupStarted)}</td><td class="num">${fmtPct(totals.sessionStart > 0 ? totals.signupStarted/totals.sessionStart*100 : 0)}</td></tr>
+            <tr><td class="metric-name">3. Account Created</td><td class="num">${fmt(totals.accountCreated)}</td><td class="num">${fmtPct(totals.signupStarted > 0 ? totals.accountCreated/totals.signupStarted*100 : 0)}</td></tr>
+            <tr><td class="metric-name">4. Signin Successful</td><td class="num">${fmt(totals.signinCompleted)}</td><td class="num">${fmtPct(totals.loginRate)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  setsc('h-users','h-users-c',tw["Total Users"][lw],tw["Total Users"][pw]);
-  setsc('h-new','h-new-c',tw["New Users"][lw],tw["New Users"][pw]);
-  setsc('h-sess','h-sess-c',tw["Sessions"][lw],tw["Sessions"][pw]);
-  setsc('h-ret','h-ret-c',tw["Returning Users"][lw],tw["Returning Users"][pw]);
-  setsc('h-inst','h-inst-c',tw["App Installs"][lw],tw["App Installs"][pw]);
-  setsc('h-dau',null,tw["DAU / MAU %"][lw]+'%',0);
-  setsc('h-eng',null,tw["Engagement Rate %"][lw]+'%',0);
-  setsc('h-rem',null,f(tw["App Removes"][lw]),0);
-  const ur=(tw["App Installs"][lw]>0?(tw["App Removes"][lw]/tw["App Installs"][lw]*100).toFixed(1):0);
-  document.getElementById('h-ur').textContent='Uninstall rate: '+ur+'%';
+    <div class="section">
+      <div class="section-title">🎬 Content Engagement Funnel</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Step</th><th class="num">Count</th><th class="num">Conversion</th></tr></thead>
+          <tbody>
+            <tr><td class="metric-name">1. Content Opened</td><td class="num">${fmt(totals.contentOpened)}</td><td class="num">100%</td></tr>
+            <tr><td class="metric-name">2. Content Completed</td><td class="num">${fmt(totals.contentViewCompleted)}</td><td class="num">${fmtPct(totals.completionRate)}</td></tr>
+            <tr><td class="metric-name">3. Content Liked</td><td class="num">${fmt(totals.contentLiked)}</td><td class="num">${fmtPct(totals.likeRate)}</td></tr>
+            <tr><td class="metric-name">4. Content Shared</td><td class="num">${fmt(totals.contentShared)}</td><td class="num">${fmtPct(totals.shareRate)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  // Charts
-  sessChart();
-
-  svgBars('inst-chart',
-    WEEKS.flatMap(w=>[w+' Inst',w+' Rem']),
-    D.ov["App Installs"].flatMap((v,i)=>[v,D.ov["App Removes"][i]]),
-    D.ov["App Installs"].flatMap(()=>['var(--blue)','var(--red)']),
-    Math.max(...D.ov["App Installs"])
-  );
-
-  svgBars('ur-chart',
-    WEEKS,
-    D.ov["App Installs"].map((inst,i)=>inst>0?(D.ov["App Removes"][i]/inst*100).toFixed(1)+'%':'N/A'),
-    D.ov["App Installs"].map((inst,i)=>{const r=inst>0?D.ov["App Removes"][i]/inst*100:0;return r>80?'var(--red)':'var(--orange)';}),
-    100
-  );
-
-  // Overview tables
-  weekTbl('ov-tbl',D.ov,{"App Removes":false});
-  wowTbl('wow-tbl',D.ov,{"App Removes":false});
-
-  // Bug tracker
-  document.getElementById('b-pay').textContent=bw["Payment Success %"][lw]+'%';
-  document.getElementById('b-login').textContent=bw["Login Success %"][lw]+'%';
-  document.getElementById('b-gen').textContent=bw["AI Generation %"][lw]+'%';
-  weekTbl('bug-tbl',D.bugs,{"Payment Success %":true,"Login Success %":true,"AI Generation %":true});
-  weekTbl('bug-counts-tbl',D.counts,{"Subscription Purchased":true,"Payment Failed":false,"Signin Completed":true,"Signin Failed":false,"Generation Started":true,"Generation Completed":true,"Generation Failed":false});
-
-  // Funnel
-  buildFunnel();
-  buildConv();
-  weekTbl('funnel-tbl',D.funnel,{"Signup Conv %":true,"Content Reach %":true,"Completion %":true,"Share Rate %":true,"Uninstall Rate %":false});
-
-  // Alerts
-  buildAlerts();
+    <div class="section">
+      <div class="section-title">💰 Monetisation Funnel</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Step</th><th class="num">Count</th><th class="num">Conversion</th></tr></thead>
+          <tbody>
+            <tr><td class="metric-name">1. Plan Selected</td><td class="num">${fmt(totals.subscriptionPurchased + totals.paymentFailed)}</td><td class="num">100%</td></tr>
+            <tr><td class="metric-name">2. Payment Successful</td><td class="num">${fmt(totals.subscriptionPurchased)}</td><td class="num ${totals.paymentRate >= 50 ? 'good' : 'bad'}">${fmtPct(totals.paymentRate)}</td></tr>
+            <tr><td class="metric-name">2b. Payment Failed</td><td class="num">${fmt(totals.paymentFailed)}</td><td class="num bad">${fmtPct(100 - totals.paymentRate)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 }
 
-window.addEventListener('load',init);
+// ═══════════════════════════════════════════════════════════════
+// ALERTS TAB
+// ═══════════════════════════════════════════════════════════════
+function renderAlerts() {
+  const t = calcTotals(filteredData);
+  const alerts = [];
+
+  if (t.paymentRate < 10) alerts.push({sev:'critical', icon:'🚨', title:'Payment Gateway Broken', curr:fmtPct(t.paymentRate), target:'50%+', action:'P0 — Engineering must fix this week. Test all plans on Android + iOS, check GST flow.'});
+  else if (t.paymentRate < 50) alerts.push({sev:'warning', icon:'⚠️', title:'Payment Rate Below Target', curr:fmtPct(t.paymentRate), target:'50%+', action:'Monitor and continue debugging.'});
+
+  if (t.generationRate < 50) alerts.push({sev:'critical', icon:'🚨', title:'AI Generation Outage', curr:fmtPct(t.generationRate), target:'85%+', action:'P0 — Backend/model issue. Check logs, restart pipeline.'});
+  else if (t.generationRate < 85) alerts.push({sev:'warning', icon:'⚠️', title:'AI Generation Below Target', curr:fmtPct(t.generationRate), target:'85%+', action:'Investigate failure modes.'});
+
+  if (t.loginRate < 65) alerts.push({sev:'critical', icon:'🚨', title:'Login Failure Rate High', curr:fmtPct(t.loginRate), target:'80%+', action:'P0 — Add Google/Apple SSO this week.'});
+
+  if (t.uninstallRate > 85) alerts.push({sev:'critical', icon:'🚨', title:'Uninstall Rate Critical', curr:fmtPct(t.uninstallRate), target:'<50%', action:'P0 — Onboarding redesign needed. Show value before signup.'});
+
+  if (t.contentReach < 30) alerts.push({sev:'warning', icon:'⚠️', title:'Content Reach Below 30%', curr:fmtPct(t.contentReach), target:'50%+', action:'P1 — Home screen redesign. Move content above the fold.'});
+
+  if (t.completionRate >= 50) alerts.push({sev:'healthy', icon:'✅', title:'Content Completion Healthy', curr:fmtPct(t.completionRate), target:'50%+', action:'✅ Strength — protect this. Content quality is good.'});
+  if (t.shareRate >= 15) alerts.push({sev:'healthy', icon:'✅', title:'Strong Organic Share Rate', curr:fmtPct(t.shareRate), target:'15%+', action:'✅ Viral loop working. Build creator incentive program to amplify.'});
+
+  if (alerts.length === 0) alerts.push({sev:'healthy', icon:'✅', title:'All systems healthy', curr:'—', target:'—', action:'No critical issues detected in the selected range.'});
+
+  const crit = alerts.filter(a => a.sev === 'critical').length;
+  const warn = alerts.filter(a => a.sev === 'warning').length;
+  const heal = alerts.filter(a => a.sev === 'healthy').length;
+
+  document.getElementById("dashboard").innerHTML = `
+    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="kpi-card" style="border-left: 4px solid #C0392B;">
+        <div class="kpi-label">🚨 Critical</div>
+        <div class="kpi-value" style="color:#C0392B;">${crit}</div>
+        <div class="kpi-context">Need immediate action</div>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #CA6F1E;">
+        <div class="kpi-label">⚠️ Warnings</div>
+        <div class="kpi-value" style="color:#CA6F1E;">${warn}</div>
+        <div class="kpi-context">Monitor closely</div>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #0A7C59;">
+        <div class="kpi-label">✅ Healthy</div>
+        <div class="kpi-value" style="color:#0A7C59;">${heal}</div>
+        <div class="kpi-context">Working well</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚡ Active Alerts</div>
+      ${alerts.map(a => `
+        <div class="alert-card ${a.sev}">
+          <div class="alert-icon">${a.icon}</div>
+          <div class="alert-content">
+            <div class="alert-title">${a.title}</div>
+            <div class="alert-meta">
+              <span><strong>Current:</strong> ${a.curr}</span>
+              <span><strong>Target:</strong> ${a.target}</span>
+            </div>
+            <div class="alert-action">${a.action}</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECOMMENDATIONS TAB
+// ═══════════════════════════════════════════════════════════════
+function renderRecommendations() {
+  const t = calcTotals(filteredData);
+  const recs = [];
+
+  if (t.paymentRate < 50) recs.push({p:'p0', title:'Fix Payment Gateway', desc:'Test all subscription plans on Android and iOS. Check GST compliance, retry logic, and webhook handling. Engineering owner this week.'});
+  if (t.loginRate < 80) recs.push({p:'p0', title:'Add Google/Apple SSO', desc:`${(100 - t.loginRate).toFixed(0)}% of login attempts fail. SSO eliminates password issues entirely. 2-3 days engineering work.`});
+  if (t.generationRate < 85) recs.push({p:'p0', title:'Investigate AI Generation Failures', desc:`${t.generationFailed} failed generations vs ${t.generationCompleted} successful. Check backend logs, model availability, request timeouts.`});
+  if (t.uninstallRate > 80) recs.push({p:'p0', title:'Redesign Onboarding', desc:'Show product value BEFORE asking for signup. Let users browse content first. Defer auth until they want to save/share.'});
+  if (t.contentReach < 50) recs.push({p:'p1', title:'Redesign Home Screen', desc:'Move content feed above the fold. Reduce navigation friction. A/B test new layout vs current.'});
+  if (t.shareRate >= 15) recs.push({p:'p2', title:'Launch Creator Incentive Program', desc:`${fmtPct(t.shareRate)} organic share rate is exceptional. Add referral rewards, creator badges, and revenue share to amplify the viral loop.`});
+  if (t.completionRate >= 50) recs.push({p:'p2', title:'Double Down on Content Quality', desc:`${fmtPct(t.completionRate)} completion rate signals strong content fit. Invest in more of what's working — analyse top 10 by completion to identify the pattern.`});
+
+  recs.push({p:'p1', title:'Build Push Notification System', desc:'Daily Drop content hook. Re-engage users who installed but stopped opening. Industry shows 20-30% lift in DAU.'});
+  recs.push({p:'p1', title:'Tag Marketing Campaigns Properly', desc:'Add UTM parameters to all paid campaigns. Without UTMs, you cannot attribute installs to channels and CAC measurement is impossible.'});
+  recs.push({p:'p2', title:'iOS Launch + ASO', desc:'Plan iOS launch for Q2. Optimize App Store listing — keywords, screenshots, video preview, ratings prompt at right moment.'});
+
+  document.getElementById("dashboard").innerHTML = `
+    <div class="section">
+      <div class="section-title">💡 Strategic Recommendations</div>
+      <p style="color:#6B7280; font-size:13px; margin-bottom:16px;">Auto-generated based on current data. Priority: <strong style="color:#C0392B;">P0 = This Week</strong>, <strong style="color:#CA6F1E;">P1 = This Month</strong>, <strong style="color:#1A56A0;">P2 = Strategic</strong></p>
+      <div class="rec-grid">
+        ${recs.map(r => `
+          <div class="rec-card">
+            <span class="rec-priority ${r.p}">${r.p === 'p0' ? '🔴 P0 — Critical' : r.p === 'p1' ? '🟡 P1 — Important' : '🔵 P2 — Strategic'}</span>
+            <div class="rec-title">${r.title}</div>
+            <div class="rec-desc">${r.desc}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTO-REFRESH every 5 min
+// ═══════════════════════════════════════════════════════════════
+setInterval(loadData, 5 * 60 * 1000);
+
+// ═══════════════════════════════════════════════════════════════
+// INITIAL LOAD
+// ═══════════════════════════════════════════════════════════════
+loadData();
 </script>
 </body>
 </html>
